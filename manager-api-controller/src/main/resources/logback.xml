@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+    <appender name="jetty" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>/opt/surveymanager-api/logs/sm-api-process.log</File>
+         
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>/opt/surveymanager-api/logs/sm-api-process-%d{yyyy-MM-dd}.log.gz</FileNamePattern>
+        </rollingPolicy>
+ 
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>UTF-8</charset>
+            <Pattern>%date{HH:mm:ss.SSS} - %level [%logger:%line] - %msg%n</Pattern>
+        </encoder>
+    </appender>
+   
+    <root level="INFO">
+        <appender-ref ref="jetty" />
+    </root>
+    <logger name="org.springframework" level="OFF" />
+    <logger name="ch.qos.logback" level="WARN" />
+    <logger name="org.geant.sat" level="ALL" />
+    
+</configuration>

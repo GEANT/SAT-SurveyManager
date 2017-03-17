@@ -1,0 +1,597 @@
+/*
+ * GÉANT BSD Software License
+ *
+ * Copyright (c) 2017 - 2020, GÉANT
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+ * following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+ * disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
+ * following disclaimer in the documentation and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the GÉANT nor the names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * Disclaimer:
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.geant.sat.api;
+
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.geant.sat.api.dto.AnswerDetails;
+import org.geant.sat.api.dto.AnswersResponse;
+import org.geant.sat.api.dto.ListUsersResponse;
+import org.geant.sat.api.dto.QuestionDetails;
+import org.geant.sat.api.dto.QuestionsResponse;
+import org.geant.sat.api.dto.SurveyDetails;
+import org.geant.sat.api.dto.SurveyResponse;
+import org.geant.sat.api.dto.UserDetails;
+import org.geant.sat.api.dto.lime.LimeStatusResponse;
+import org.geant.sat.api.dto.lime.LimeStatusResponse.Status;
+import org.geant.sat.api.dto.lime.ListQuestionsResponse;
+import org.geant.sat.api.dto.lime.ListSurveysResponse;
+import org.geant.sat.api.dto.lime.ListLimeUsersResponse;
+import org.geant.sat.api.dto.lime.AbstractLimeSurveyResponse;
+import org.geant.sat.api.dto.lime.LimePermission;
+import org.geant.sat.api.dto.lime.LimeQuestionDetails;
+import org.geant.sat.api.dto.lime.StringResultResponse;
+import org.geant.sat.api.dto.lime.SurveyOverview;
+import org.geant.sat.api.dto.lime.SurveyPropertiesResponse;
+import org.geant.sat.api.dto.lime.LimeUserDetails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
+/**
+ * A {@link SurveySystemConnector} for using Limesurvey as the survey system.
+ */
+public class LimeSurveyConnector implements SurveySystemConnector {
+
+    /** The prefix for all the attributes stored in the Limesurvey database. */
+    public static final String ATTRIBUTE_NAME_PREFIX = "lime_";
+    
+    /** The attribute name for full name in the Limesurvey database. */
+    public static final String ATTRIBUTE_NAME_FULL_NAME = ATTRIBUTE_NAME_PREFIX + "fullName";
+    
+    /** The attribute name for email address in the Limesurvey database. */
+    public static final String ATTRIBUTE_NAME_EMAIL = ATTRIBUTE_NAME_PREFIX + "email";
+
+    /** The attribute name for creation time in the Limesurvey database. */
+    public static final String ATTRIBUTE_NAME_CREATED = ATTRIBUTE_NAME_PREFIX + "created";
+
+    /** The attribute name for last modified time in the Limesurvey database. */
+    public static final String ATTRIBUTE_NAME_MODIFIED = ATTRIBUTE_NAME_PREFIX + "modified";
+
+    /** The attribute name for language in the Limesurvey database. */
+    public static final String ATTRIBUTE_NAME_LANGUAGE = ATTRIBUTE_NAME_PREFIX + "language";
+
+    /** Class logger. */
+    private final Logger log = LoggerFactory.getLogger(LimeSurveyConnector.class);
+
+    /** The username used for authenticating to Limesurvey API. */
+    private String apiUser;
+
+    /** The password used for authenticating to Limesurvey API. */
+    private String apiPassword;
+
+    /** The endpoint URL to Limesurvey API. */
+    private String apiEndpoint;
+
+    /** The session key (obtained after successful authentication). */
+    private String sessionKey;
+
+    /**
+     * Constructor.
+     */
+    public LimeSurveyConnector() {
+        sessionKey = null;
+    }
+
+    /**
+     * Get the username used for authenticating to Limesurvey API.
+     * @return The username used for authenticating to Limesurvey API.
+     */
+    public String getApiUser() {
+        return apiUser;
+    }
+
+    /**
+     * Set the username used for authenticating to Limesurvey API.
+     * @param newApiUser What to set.
+     */
+    public void setApiUser(String newApiUser) {
+        this.apiUser = newApiUser;
+    }
+
+    /**
+     * Get the password used for authenticating to Limesurvey API.
+     * @return The password used for authenticating to Limesurvey API.
+     */
+    public String getApiPassword() {
+        return apiPassword;
+    }
+
+    /**
+     * Set the password used for authenticating to Limesurvey API.
+     * @param newApiPassword What to set.
+     */
+    public void setApiPassword(String newApiPassword) {
+        this.apiPassword = newApiPassword;
+    }
+
+    /**
+     * Get the endpoint URL to Limesurvey API.
+     * @return The endpoint URL to Limesurvey API.
+     */
+    public String getApiEndpoint() {
+        return apiEndpoint;
+    }
+
+    /**
+     * Set the endpoint URL to Limesurvey API.
+     * @param newApiEndpoint What to set.
+     */
+    public void setApiEndpoint(String newApiEndpoint) {
+        this.apiEndpoint = newApiEndpoint;
+    }
+    
+    /** {@inheritDoc} */
+    public SurveyResponse listSurveys() {
+        final SurveyResponse response = new SurveyResponse();
+
+        try {
+            final ListSurveysResponse surveys = fetchSurveys();
+            if (surveys != null) {
+                response.setErrorMessage(surveys.getErrorMessage());
+                final SurveyOverview[] overviews = surveys.getSurveys();
+                final SurveyDetails[] details = new SurveyDetails[overviews.length];
+                final ListLimeUsersResponse usersResponse = fetchUsers();
+                if (usersResponse != null) {
+                    final LimeUserDetails[] users = usersResponse.getUsers();
+                    for (int i = 0; i < overviews.length; i++) {
+                        details[i] = new SurveyDetails();
+                        if ("Y".equalsIgnoreCase(overviews[i].getActive())) {
+                            details[i].setActive(true);
+                        } else {
+                            details[i].setActive(false);
+                        }
+                        details[i].setSid(overviews[i].getSid());
+                        details[i].setTitle(overviews[i].getTitle());
+                        final String owner = getOwner(overviews[i].getSid());
+                        details[i].setOwner(getUsername(users, owner));
+                    }
+                }
+                response.setSurveys(details);
+            } else {
+                response.setErrorMessage("Could not find any surveys from the backend");
+            }
+        } catch (SurveySystemConnectorException e) {
+            log.error("Could not fetch surveys from Limesurvey", e);
+            response.setErrorMessage(e.getMessage());
+        }
+        return response;
+    }
+
+    /** {@inheritDoc} */
+    public QuestionsResponse listQuestions(final String sid) {
+        final QuestionsResponse response = new QuestionsResponse();
+        try {
+            final ListQuestionsResponse questions = fetchQuestions(sid);
+            if (questions != null) {
+                response.setErrorMessage(questions.getErrorMessage());
+                final LimeQuestionDetails[] limeDetails = questions.getQuestions();
+                final QuestionDetails[] responseDetails = new QuestionDetails[limeDetails.length];
+                for (int i = 0; i < limeDetails.length; i++) {
+                    responseDetails[i] = new QuestionDetails();
+                    if ("Y".equalsIgnoreCase(limeDetails[i].getMandatory())) {
+                        responseDetails[i].setMandatory(true);
+                    } else {
+                        responseDetails[i].setMandatory(false);
+                    }
+                    responseDetails[i].setGid(limeDetails[i].getGid());
+                    responseDetails[i].setQid(limeDetails[i].getQid());
+                    responseDetails[i].setLanguage(limeDetails[i].getLanguage());
+                    responseDetails[i].setParentQid(limeDetails[i].getParentQid());
+                    responseDetails[i].setQuestion(limeDetails[i].getQuestion());
+                    responseDetails[i].setQuestionOrder(limeDetails[i].getQuestionOrder());
+                    responseDetails[i].setSid(sid);
+                    responseDetails[i].setTitle(limeDetails[i].getTitle());
+                    responseDetails[i].setType(limeDetails[i].getType());
+                }
+                response.setQuestions(responseDetails);
+            } else {
+                response.setErrorMessage("Could not find any questions from the backend");
+            }
+        } catch (SurveySystemConnectorException e) {
+            log.error("Could not fetch questions from Limesurvey", e);
+            response.setErrorMessage(e.getMessage());
+        }
+        return response;
+    }
+
+    /** {@inheritDoc} */
+    public AnswersResponse listAnswers(final String sid) throws SurveySystemConnectorException {
+        final AnswersResponse response = new AnswersResponse();
+        final String csv = fetchAnswers(sid);
+        if (csv == null) {
+            throw new SurveySystemConnectorException("Could not find any answers");
+        }
+        final StringTokenizer lines = new StringTokenizer(csv, "\n");
+        final String headerLine = lines.nextToken();
+        // the CSV format is "value1","value2","value3",..
+        final StringTokenizer headerTokenizer = new StringTokenizer(headerLine.substring(1, headerLine.length() - 1),
+                "\",\"");
+        for (int i = 0; i < 9; i++) {
+            final String header = headerTokenizer.nextToken();
+            log.trace("Ignoring header token {}", header);
+        }
+        final List<String> questionTitles = new ArrayList<>();
+        while (headerTokenizer.hasMoreTokens()) {
+            final String header = headerTokenizer.nextToken();
+            log.trace("Parsed question title {}", header);
+            questionTitles.add(header);
+        }
+        log.debug("Parsed {} question titles", questionTitles.size());
+        final List<AnswerDetails> answers = new ArrayList<>();
+        while (lines.hasMoreTokens()) {
+            answers.add(parseAnswerLine(lines.nextToken(), questionTitles));
+        }
+        response.setAnswers(answers);
+        return response;
+    }
+    
+    /** {@inheritDoc} */
+    public ListUsersResponse listUsers() {
+        final ListUsersResponse response = new ListUsersResponse();
+        final List<UserDetails> users = new ArrayList<>();
+        try {
+            ListLimeUsersResponse limeUsers = fetchUsers();
+            for (final LimeUserDetails limeDetails : limeUsers.getUsers()) {
+                final UserDetails details = new UserDetails();
+                details.setSurveyPrincipalId(limeDetails.getUsername());
+                details.setAttributes(parseUserAttributes(limeDetails));
+                details.setRoles(parseUserRoles(limeDetails));
+                users.add(details);
+            }
+            response.setUsers(users);
+        } catch (SurveySystemConnectorException e) {
+            log.error("Could not fetch users from Limesurvey", e);
+            response.setErrorMessage(e.getMessage());
+        }
+        return response;
+    }
+    
+    /**
+     * Parses the selected attributes from the given details into a map of attributes.
+     * @param limeDetails The user details in the Limesurvey database.
+     * @return The map of selected attributes and their values.
+     */
+    protected Map<String, String> parseUserAttributes(final LimeUserDetails limeDetails) {
+        final Map<String, String> attributes = new HashMap<>();
+        addIfValueNotEmpty(attributes, ATTRIBUTE_NAME_FULL_NAME, limeDetails.getFullName());
+        addIfValueNotEmpty(attributes, ATTRIBUTE_NAME_EMAIL, limeDetails.getEmail());
+        addIfValueNotEmpty(attributes, ATTRIBUTE_NAME_LANGUAGE, limeDetails.getLanguage());
+        addIfValueNotEmpty(attributes, ATTRIBUTE_NAME_CREATED, limeDetails.getCreated());
+        addIfValueNotEmpty(attributes, ATTRIBUTE_NAME_MODIFIED, limeDetails.getModified());
+        return attributes;
+    }
+    
+    /**
+     * Adds a new attribute key and value to the given map, if the value is not empty.
+     * @param attributes The map of attributes.
+     * @param key The key for the attribute.
+     * @param value The value for the attribute.
+     */
+    protected void addIfValueNotEmpty(final Map<String, String> attributes, final String key, final String value) {
+        if (value != null && value.length() > 0) {
+            attributes.put(key, value);
+        }
+    }
+    
+    /**
+     * Parses the limesurvey global roles into a set of roles.
+     * @param limeDetails The user details in the Limesurvey database.
+     * @return The set of global roles.
+     */
+    protected Set<String> parseUserRoles(final LimeUserDetails limeDetails) {
+        final LimePermission[] permissions = limeDetails.getPermissions();
+        if (permissions == null) {
+            return null;
+        }
+        final Set<String> roles = new HashSet<>();
+        for (final LimePermission permission : permissions) {
+            if ("global".equalsIgnoreCase(permission.getEntity())) {
+                roles.add(permission.getPermission());
+                log.debug("Added global permission {} as role" , permission.getPermission());
+            } else {
+                log.trace("Ignored non-global ({}) permission {}", permission.getEntity(), permission.getPermission());
+            }
+        }
+        return roles;
+    }
+
+    /**
+     * Parses a CSV line separated by '\",' -strings.
+     * @param line The line to be parsed.
+     * @param questionTitles The list of question titles.
+     * @return The answer details, parsed from the given line.
+     */
+    protected AnswerDetails parseAnswerLine(final String line, final List<String> questionTitles) {
+        log.trace("Parsing line \n{}", line);
+        final AnswerDetails details = new AnswerDetails();
+        final String[] lineElements = line.substring(0, line.length() - 1).split("\",");
+        details.setId(lineElements[0].substring(1));
+        log.trace("id = {}", details.getId());
+        details.setSubmitDate(lineElements[1].substring(1));
+        // skip lastpage (2)
+        details.setStartLanguage(lineElements[3].substring(1));
+        details.setToken(lineElements[4].substring(1));
+        details.setStartDate(lineElements[5].substring(1));
+        // skip datestamp (6)
+        // skip ipaddrs (7)
+        // skip refurl (8)
+        final Map<String, String> answers = new HashMap<>();
+        for (int i = 0; i < questionTitles.size(); i++) {
+            log.trace("Successfully parsed value '{}' for {}", lineElements[i + 9].substring(1), questionTitles.get(i));
+            answers.put(questionTitles.get(i), lineElements[i + 9].substring(1));
+        }
+        details.setAnswers(answers);
+        return details;
+    }
+
+    /**
+     * Get the username for the given user identifier.
+     * @param users The list of Limesurvey users.
+     * @param id The identifier for the user to be returned.
+     * @return The username corresponding to the given identifier.
+     */
+    protected String getUsername(final LimeUserDetails[] users, final String id) {
+        for (final LimeUserDetails user : users) {
+            if (id.equals(user.getUid())) {
+                return user.getUsername();
+            }
+        }
+        log.warn("Could not find a matching user details for uid {}", id);
+        return null;
+    }
+
+    /**
+     * Parses the response from the Limesurvey API.
+     * @param method The HTTP method.
+     * @param params The parameters for the request.
+     * @param response The response from the Limesurvey API.
+     * @param retry Whether to try again if first request fails.
+     * @param <T> The format of the response.
+     * @return The parsed response.
+     * @throws SurveySystemConnectorException If the communication or response parsing fails.
+     */
+    protected <T extends AbstractLimeSurveyResponse> T getContents(final String method, final String params, T response,
+            boolean retry) throws SurveySystemConnectorException {
+        final String contents = getContents(method, params, true);
+        final Gson gson = new Gson();
+        try {
+            return (T) gson.fromJson(contents, response.getClass());
+        } catch (JsonSyntaxException e) {
+            log.debug("Could not encode response from contents {}", contents);
+            try {
+                final LimeStatusResponse statusResponse = gson.fromJson(contents, LimeStatusResponse.class);
+                final Status status = statusResponse.getStatus();
+                if (retry && status != null && status.getStatus() != null) {
+                    updateSessionKey();
+                    return getContents(method, params, response, false);
+                }
+            } catch (JsonSyntaxException jse) {
+                log.debug("Could not find status from contents {}", contents);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Fetches the surveys from Limesurvey.
+     * @return The list of surveys.
+     * @throws SurveySystemConnectorException If the communication fails.
+     */
+    protected ListSurveysResponse fetchSurveys() throws SurveySystemConnectorException {
+        return getContents("list_surveys", null, new ListSurveysResponse(), true);
+    }
+
+    /**
+     * Fetches the users from Limesurvey.
+     * @return The list of users.
+     * @throws SurveySystemConnectorException If the communication fails.
+     */
+    protected ListLimeUsersResponse fetchUsers() throws SurveySystemConnectorException {
+        return getContents("list_users", null, new ListLimeUsersResponse(), true);
+    }
+
+    /**
+     * Fetches the answers from Limesurvey.
+     * @param sid The survey identifier.
+     * @return The answers in CSV.
+     * @throws SurveySystemConnectorException If the communication fails.
+     */
+    protected String fetchAnswers(final String sid) throws SurveySystemConnectorException {
+        final StringResultResponse stringResponse = getContents("export_responses", "\"" + sid + "\", \"csv\"",
+                new StringResultResponse(), true);
+        if (stringResponse != null && stringResponse.getStringValue() != null) {
+            final String decoded = new String(Base64.decodeBase64(stringResponse.getStringValue()));
+            log.trace("Decoded: {}", decoded);
+            return decoded;
+        }
+        return null;
+    }
+
+    /**
+     * Get the status -value from the given contents, if it exists.
+     * @param contents The JSON contents in raw string.
+     * @return The status if it exists, null otherwise.
+     */
+    protected String getStatusIfExists(final String contents) {
+        try {
+            Gson gson = new Gson();
+            LimeStatusResponse statusResponse = gson.fromJson(contents, LimeStatusResponse.class);
+            if (statusResponse.getStatus() != null) {
+                return statusResponse.getStatus().getStatus();
+            }
+        } catch (JsonSyntaxException e) {
+            log.warn("Could not parse status", e);
+        }
+        return null;
+    }
+
+    /**
+     * Fetches the questions from Limesurvey.
+     * @param sid The survey identifier.
+     * @return The list of questions.
+     * @throws SurveySystemConnectorException If the communication fails.
+     */
+    protected ListQuestionsResponse fetchQuestions(final String sid) throws SurveySystemConnectorException {
+        final String contents = getContents("list_questions", "\"" + sid + "\"", true);
+        Gson gson = new Gson();
+        return gson.fromJson(contents, ListQuestionsResponse.class);
+    }
+
+    /**
+     * Get the owner identifier for a survey.
+     * @param sid The survey identifier.
+     * @return The owner identifier.
+     * @throws SurveySystemConnectorException If the communication fails.
+     */
+    protected String getOwner(final String sid) throws SurveySystemConnectorException {
+        final String contents = getContents("get_survey_properties", "\"" + sid + "\", [\"owner_id\", \"admin\"]",
+                true);
+        Gson gson = new Gson();
+        return gson.fromJson(contents, SurveyPropertiesResponse.class).getOverview().getOwnerId();
+    }
+
+    /**
+     * Contacts Limesurvey API with the given method and parameters.
+     * @param method The Limesurvey method.
+     * @param params The Limesurvey parameters.
+     * @param addSessionKey Whether or not to add the session key to the request.
+     * @return The response contents as raw string if the status code was 200.
+     * @throws SurveySystemConnectorException If the communication fails (response code not 200).
+     */
+    protected String getContents(final String method, final String params, boolean addSessionKey)
+            throws SurveySystemConnectorException {
+        if (addSessionKey && sessionKey == null) {
+            log.debug("Updating session key");
+            updateSessionKey();
+        }
+        try (final CloseableHttpClient httpClient = HttpClientBuilder.buildClient()) {
+            HttpPost post = new HttpPost(apiEndpoint);
+            post.setHeader("Content-type", "application/json");
+            final String query;
+            if (addSessionKey) {
+                if (params != null) {
+                    query = "{\"method\": \"" + method + "\", \"params\": [ \"" + sessionKey + "\", " + params
+                            + " ], \"id\": 1}";
+                } else {
+                    query = "{\"method\": \"" + method + "\", \"params\": [ \"" + sessionKey + "\" ], \"id\": 1}";
+                }
+            } else {
+                query = "{\"method\": \"" + method + "\", \"params\": [ " + params + " ], \"id\": 1}";
+            }
+            post.setEntity(new StringEntity(query));
+            log.debug("Sending query {}", query);
+            final HttpResponse response = httpClient.execute(post);
+            final int statusCode = response.getStatusLine().getStatusCode();
+            log.debug("Response code {} from {}", statusCode, method);
+            if (statusCode == 200) {
+                final HttpEntity entity = response.getEntity();
+                final String contents = EntityUtils.toString(entity);
+                log.trace("Got the following response contents from {}: {}", method, contents);
+                return contents;
+            }
+            throw new SurveySystemConnectorException("Unexpected status code: " + statusCode);
+        } catch (IOException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
+            throw new SurveySystemConnectorException(e);
+        }
+    }
+
+    /**
+     * Updates the session key, i.e. authenticates to Limesurvey.
+     * @throws SurveySystemConnectorException If the communication fails.
+     */
+    protected void updateSessionKey() throws SurveySystemConnectorException {
+        final String contents = getContents("get_session_key", "\"" + apiUser + "\", \"" + apiPassword + "\"", false);
+        final String newSessionKey = getSessionKey(contents);
+        if (newSessionKey != null) {
+            log.debug("Successfully parsed session key {}", newSessionKey);
+            this.sessionKey = newSessionKey;
+            return;
+        }
+        try {
+            Gson gson = new Gson();
+            final String errorMessage = gson.fromJson(contents, LimeStatusResponse.class).getStatus().getStatus();
+            throw new SurveySystemConnectorException(errorMessage);
+        } catch (JsonSyntaxException e) {
+            log.error("Could not get session_key from Limesurvey", e);
+            throw new SurveySystemConnectorException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Parses the session key from the contents.
+     * @param contents The JSON contents in raw string.
+     * @return The session key.
+     * @throws SurveySystemConnectorException If the session key cannot be parsed.
+     */
+    protected String getSessionKey(final String contents) throws SurveySystemConnectorException {
+        Gson gson = new Gson();
+        try {
+            return gson.fromJson(contents, StringResultResponse.class).getStringValue();
+        } catch (JsonSyntaxException e) {
+            log.trace("Could not read session key from the contents", e);
+            throw getSessionKeyFailed(contents);
+        }
+    }
+
+    /**
+     * Parses the error message if it's found from the contents.
+     * @param contents The JSON contents in raw string.
+     * @return The exception containing the parsed error message if it was found.
+     */
+    protected SurveySystemConnectorException getSessionKeyFailed(final String contents) {
+        Gson gson = new Gson();
+        try {
+            final String errorMessage = gson.fromJson(contents, LimeStatusResponse.class).getStatus().getStatus();
+            log.trace("Successfully parsed error message {}", errorMessage);
+            return new SurveySystemConnectorException(errorMessage);
+        } catch (JsonSyntaxException e) {
+            log.trace("Could not error message from the contents", e);
+            return new SurveySystemConnectorException(e);
+        }
+    }
+}

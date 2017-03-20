@@ -22,6 +22,7 @@ See LICENSE.txt file in the root directory of this repository for the copyright/
         <logback.version>1.1.9</logback.version>
         <ehcache.version>3.3.0</ehcache.version>
         <testng.version>6.11</testng.version>
+        <joda.version>2.9.7</joda.version>
         <checkstyle.version>2.17</checkstyle.version>
         <checkstyle.configLocation>
             conf/checkstyle.xml
@@ -64,6 +65,11 @@ See LICENSE.txt file in the root directory of this repository for the copyright/
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>${joda.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -55,7 +55,9 @@ import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.QuestionsResponse;
 import org.geant.sat.api.dto.RoleDetails;
 import org.geant.sat.api.dto.RoleResponse;
+import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.SurveyResponse;
+import org.geant.sat.api.dto.ListAllSurveysResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.geant.sat.api.dto.UserResponse;
 import org.slf4j.Logger;
@@ -115,9 +117,9 @@ public class SatApiClient {
      * Get all the surveys from the Survey Manager API.
      * @return All the surveys from the Survey Manager API.
      */
-    public SurveyResponse getSurveys() {
+    public ListAllSurveysResponse getSurveys() {
         final String url = apiBaseUrl + "/surveys";
-        return getResponseWithGet(url, SurveyResponse.class);
+        return getResponseWithGet(url, ListAllSurveysResponse.class);
     }
 
     /**
@@ -226,6 +228,13 @@ public class SatApiClient {
         final Gson gson = new Gson();
         final String encoded = gson.toJson(details);
         return getResponseWithPut(url, encoded, RoleResponse.class, true);
+    }
+    
+    public SurveyResponse updateSurvey(final SurveyDetails details) {
+    	final String url = apiBaseUrl + "/surveys/" + details.getSid();
+    	final Gson gson = new Gson();
+    	final String encoded = gson.toJson(details);
+    	return getResponseWithPut(url, encoded, SurveyResponse.class, true);
     }
 
     /**

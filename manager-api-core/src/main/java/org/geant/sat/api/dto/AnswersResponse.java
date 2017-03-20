@@ -27,6 +27,7 @@
  */
 package org.geant.sat.api.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,7 +36,7 @@ import java.util.List;
 public class AnswersResponse extends AbstractConnectorResponse {
 
     /** All the answer details. */
-    private List<AnswerDetails> answers;
+    private List<AnswerDetails> answers = new ArrayList<>();
 
     /**
      * Get all the answer details.

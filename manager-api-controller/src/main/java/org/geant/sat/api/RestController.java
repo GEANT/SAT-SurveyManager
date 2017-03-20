@@ -41,7 +41,7 @@ import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.QuestionsResponse;
 import org.geant.sat.api.dto.RoleDetails;
 import org.geant.sat.api.dto.RoleResponse;
-import org.geant.sat.api.dto.SurveyResponse;
+import org.geant.sat.api.dto.ListAllSurveysResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.geant.sat.api.dto.UserResponse;
 import org.slf4j.Logger;
@@ -85,25 +85,25 @@ public class RestController {
      * @return The list of all surveys.
      */
     @RequestMapping(value = "/surveys", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<SurveyResponse> listSurveys(
+    public @ResponseBody ResponseEntity<ListAllSurveysResponse> listSurveys(
             @RequestParam(value = "active", required = false, defaultValue = "false") String active,
             HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         log.debug("Starting /surveys endpoint with parameter active={}", active);
-        final SurveyResponse emptyResponse = new SurveyResponse();
+        final ListAllSurveysResponse emptyResponse = new ListAllSurveysResponse();
         try {
-            final SurveyResponse response = surveyConnector.listSurveys();
+            final ListAllSurveysResponse response = surveyConnector.listSurveys();
             if (response != null) {
                 if (response.getErrorMessage() != null) {
-                    return new ResponseEntity<SurveyResponse>(response, HttpStatus.BAD_GATEWAY);
+                    return new ResponseEntity<ListAllSurveysResponse>(response, HttpStatus.BAD_GATEWAY);
                 }
-                return new ResponseEntity<SurveyResponse>(response, HttpStatus.OK);
+                return new ResponseEntity<ListAllSurveysResponse>(response, HttpStatus.OK);
             }
         } catch (SurveySystemConnectorException e) {
             emptyResponse.setErrorMessage(e.getMessage());
-            return new ResponseEntity<SurveyResponse>(emptyResponse, HttpStatus.BAD_GATEWAY);
+            return new ResponseEntity<ListAllSurveysResponse>(emptyResponse, HttpStatus.BAD_GATEWAY);
         }
         emptyResponse.setErrorMessage("Could not find any surveys");
-        return new ResponseEntity<SurveyResponse>(emptyResponse, HttpStatus.OK);
+        return new ResponseEntity<ListAllSurveysResponse>(emptyResponse, HttpStatus.OK);
     }
 
     /**

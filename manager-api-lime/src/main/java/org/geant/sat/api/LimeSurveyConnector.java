@@ -52,7 +52,7 @@ import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.QuestionDetails;
 import org.geant.sat.api.dto.QuestionsResponse;
 import org.geant.sat.api.dto.SurveyDetails;
-import org.geant.sat.api.dto.SurveyResponse;
+import org.geant.sat.api.dto.ListAllSurveysResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.geant.sat.api.dto.lime.LimeStatusResponse;
 import org.geant.sat.api.dto.lime.LimeStatusResponse.Status;
@@ -166,8 +166,8 @@ public class LimeSurveyConnector implements SurveySystemConnector {
     }
     
     /** {@inheritDoc} */
-    public SurveyResponse listSurveys() {
-        final SurveyResponse response = new SurveyResponse();
+    public ListAllSurveysResponse listSurveys() {
+        final ListAllSurveysResponse response = new ListAllSurveysResponse();
 
         try {
             final ListSurveysResponse surveys = fetchSurveys();

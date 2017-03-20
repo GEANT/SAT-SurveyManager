@@ -30,7 +30,7 @@ package org.geant.sat.api;
 import org.geant.sat.api.dto.AnswersResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.QuestionsResponse;
-import org.geant.sat.api.dto.SurveyResponse;
+import org.geant.sat.api.dto.ListAllSurveysResponse;
 
 /**
  * An interface for the connectors communicating with the survey system.
@@ -42,7 +42,7 @@ public interface SurveySystemConnector {
      * @return All the surveys in the survey system.
      * @throws SurveySystemConnectorException In the case of any errors.
      */
-    public SurveyResponse listSurveys() throws SurveySystemConnectorException;
+    public ListAllSurveysResponse listSurveys() throws SurveySystemConnectorException;
 
     /**
      * List all questions in the survey system for one survey.

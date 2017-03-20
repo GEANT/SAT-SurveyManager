@@ -30,7 +30,7 @@ package org.geant.sat.api.dto;
 /**
  * A response containing details for surveys.
  */
-public class SurveyResponse extends AbstractConnectorResponse {
+public class ListAllSurveysResponse extends AbstractConnectorResponse {
 
     /** The details for surveys. */
     private SurveyDetails[] surveys;

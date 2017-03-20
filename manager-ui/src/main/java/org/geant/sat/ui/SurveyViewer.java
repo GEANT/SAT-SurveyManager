@@ -104,7 +104,7 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
             return;
         }
         details.setActive(!details.getActive());
-        getMainUI().getSatApiClient().updateSurvey(details);
+        indicateSuccess(getMainUI().getSatApiClient().updateSurvey(details));
         surveys.setItems(getFilteredSurveyDetails());
     }
 
@@ -171,7 +171,7 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
             return null;
         }
         QuestionsResponse qr = ui.getSatApiClient().getQuestions(sid);
-        if (qr == null) {
+        if (!indicateSuccess(qr)) {
             LOG.debug("No questions for  sid" + sid);
             return null;
         }

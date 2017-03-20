@@ -26,9 +26,11 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 package org.geant.sat.ui;
 
+import org.geant.sat.api.dto.AbstractConnectorResponse;
+
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.VerticalLayout;
 
 /** abstract base class for vertical layouts. */
@@ -73,6 +75,17 @@ public abstract class AbstractSurveyVerticalLayout extends VerticalLayout {
         }
         value = mainUI.getStrings().getString(key);
         return value == null ? key : value;
+    }
+
+    /**
+     * Checks for Sat Api error response.
+     * 
+     * @param response
+     *            to check for.
+     * @return false if error occurred.
+     */
+    public boolean indicateSuccess(AbstractConnectorResponse response) {
+        return getMainUI().indicateSuccess(response);
     }
 
 }

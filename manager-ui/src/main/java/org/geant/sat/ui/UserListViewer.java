@@ -102,8 +102,8 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
         column.setHidable(true);
         column.setHidden(true);
         users.addItemClickListener(event -> handleEvent(event));
-        //atleast one, at most 20 and fit to size otherwise
-        users.setHeightByRows(details.size()>0?details.size():1);
+        // atleast one, at most 20 and fit to size otherwise
+        users.setHeightByRows(details.size() > 0 ? details.size() : 1);
 
     }
 
@@ -115,17 +115,18 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
     private List<UserDetails> getUserDetails() {
         List<UserDetails> details = new ArrayList<UserDetails>();
         ListUsersResponse resp = getMainUI().getSatApiClient().getUsers();
-        if (resp == null) {
+        if (!indicateSuccess(resp)) {
             return details;
         }
         List<UserDetails> satDetails = resp.getUsers();
         return satDetails == null ? details : satDetails;
     }
-   
+
     /**
      * Handles click events.
      * 
-     * @param event representing the click.
+     * @param event
+     *            representing the click.
      */
     private void handleEvent(ItemClick<UserDetails> event) {
         UserDetails details = event.getItem();
@@ -154,7 +155,7 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
                 LOG.debug("Adding role " + getMainUI().getRole().getAssessmentCoordinatorRoleName());
                 details.getRoles().add(getMainUI().getRole().getAssessmentCoordinatorRoleName());
             }
-            getMainUI().getSatApiClient().updateUser(details);
+            indicateSuccess(getMainUI().getSatApiClient().updateUser(details));
             users.setItems(getUserDetails());
             break;
         case COLUMN_SO:
@@ -163,7 +164,7 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
         default:
             break;
         }
-        
+
     }
 
     /**

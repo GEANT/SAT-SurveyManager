@@ -50,10 +50,12 @@ import com.vaadin.server.WebBrowser;
 import com.vaadin.spring.annotation.EnableVaadin;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.spring.server.SpringVaadinServlet;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.themes.ValoTheme;
 
 import org.geant.sat.api.SatApiClient;
+import org.geant.sat.api.dto.AbstractConnectorResponse;
 
 /**
  * Main ui class. Configures the navigation, sets language properties and shares
@@ -83,7 +85,7 @@ public class MainUI extends UI {
     /** Role implementation. */
     @Resource(name = "applicationRole")
     private Role role;
-     /** Navigation. */
+    /** Navigation. */
     private Navigator navigator;
     /** Language resource. */
     private ResourceBundle languageBundle;
@@ -111,6 +113,23 @@ public class MainUI extends UI {
     }
 
     /**
+     * Checks for Sat Api error response.
+     * 
+     * @param response
+     *            to check for.
+     * @return false if error occurred.
+     */
+    public boolean indicateSuccess(AbstractConnectorResponse response) {
+        if (response.getErrorMessage() != null) {
+            LOG.error("Error occurred:" + response.getErrorMessage());
+            Notification.show(getStrings().getString("lang.errornotification"), response.getErrorMessage(),
+                    Notification.Type.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Method to get Language resource.
      * 
      * @return Language resource.
@@ -127,7 +146,7 @@ public class MainUI extends UI {
     public User getUser() {
         return user;
     }
-    
+
     /**
      * Method to get Role information.
      * 

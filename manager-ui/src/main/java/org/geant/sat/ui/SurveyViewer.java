@@ -104,7 +104,7 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
             return;
         }
         details.setActive(!details.getActive());
-        // getMainUI().getSatApiClient().u
+        getMainUI().getSatApiClient().updateSurvey(details);
         surveys.setItems(getFilteredSurveyDetails());
     }
 

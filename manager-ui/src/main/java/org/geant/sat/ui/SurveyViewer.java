@@ -28,9 +28,13 @@
 
 package org.geant.sat.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.geant.sat.api.dto.QuestionDetails;
 import org.geant.sat.api.dto.QuestionsResponse;
 import org.geant.sat.api.dto.SurveyDetails;
+import org.geant.sat.api.dto.UserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,22 +67,49 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
         super(ui);
         Design.read(this);
         surveys.setSelectionMode(SelectionMode.NONE);
-        SurveyDetails[] details = null;
-        if (getMainUI().getSatApiClient() != null && getMainUI().getSatApiClient().getSurveys() != null) {
-            details = ui.getSatApiClient().getSurveys().getSurveys();
-        } else {
-            LOG.warn("unable to parse surveydetails");
-        }
+        SurveyDetails[] details = getFilteredSurveyDetails();
         if (details != null && details.length > 0) {
             surveys.setItems(details);
             surveys.addColumn(SurveyDetails::getTitle).setCaption(getString("lang.surveys.column.title"));
             surveys.addColumn(SurveyDetails::getSid).setCaption(getString("lang.surveys.column.sid"));
             surveys.addColumn(SurveyDetails::getOwner).setCaption(getString("lang.surveys.column.owner"));
             surveys.addColumn(SurveyDetails::getActive).setCaption(getString("lang.surveys.column.active"));
+
             surveys.setHeightByRows(details.length > 0 ? details.length : 1);
         } else {
             LOG.warn("no survey details found");
         }
+    }
+
+    /**
+     * Method filters out surveys not belonging to user. Admin and Assessement
+     * Coordinator are show all surveys.
+     * 
+     * @return filtered list of surveys.
+     */
+    private SurveyDetails[] getFilteredSurveyDetails() {
+
+        SurveyDetails[] details = null;
+        if (getMainUI().getSatApiClient() != null && getMainUI().getSatApiClient().getSurveys() != null) {
+            details = getMainUI().getSatApiClient().getSurveys().getSurveys();
+        } else {
+            LOG.warn("unable to parse surveydetails");
+            return details;
+        }
+        UserDetails user = getMainUI().getUser().getDetails();
+        if (getMainUI().getRole().isAdmin(user) || getMainUI().getRole().isAssessmentCoordinator(user)) {
+            return details;
+        }
+        List<SurveyDetails> userSpecificList = new ArrayList<SurveyDetails>();
+        for (int i = 0; i < details.length; i++) {
+            // Here is assumption that surveyowner cannot match principal of a
+            // different user
+            if (user.getPrincipalId() != null && user.getPrincipalId().equals(details[i].getOwner())) {
+                userSpecificList.add(details[i]);
+            }
+        }
+        return userSpecificList.toArray(new SurveyDetails[userSpecificList.size()]);
+
     }
 
     /**

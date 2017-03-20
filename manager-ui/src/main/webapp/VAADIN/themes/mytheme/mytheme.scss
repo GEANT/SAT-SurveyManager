@@ -1,0 +1,23 @@
+// If you edit this file you need to compile the theme. See README.md for details.
+// Affects the color of some component elements, e.g Button, Panel title, etc
+$v-background-color: hsl(151, 96%, 97%);
+// Affects the color of content areas, e.g  Panel and Window content, TextField input etc
+//$v-app-background-color: hsl(139, 96%, 96%);
+
+
+// For more information, see: https://vaadin.com/book/-/page/themes.valo.html
+// Example variants can be copy/pasted from https://vaadin.com/wiki/-/wiki/Main/Valo+Examples
+
+@import "../valo/valo.scss";
+
+@mixin mytheme {
+  @include valo;
+
+  .v-grid-cell.disabled {
+    color: grey;
+  }
+  
+  .v-grid-cell.active {
+    color: blue;
+  }
+}

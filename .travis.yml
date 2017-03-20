@@ -10,3 +10,4 @@ after_failure:
   - cat target/surefire-reports/*.txt
 
 after_success:
+  - mvn cobertura:cobertura coveralls:report

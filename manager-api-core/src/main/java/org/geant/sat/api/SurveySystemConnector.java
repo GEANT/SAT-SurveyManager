@@ -30,6 +30,8 @@ package org.geant.sat.api;
 import org.geant.sat.api.dto.AnswersResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.QuestionsResponse;
+import org.geant.sat.api.dto.SurveyDetails;
+import org.geant.sat.api.dto.SurveyResponse;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
 
 /**
@@ -65,5 +67,12 @@ public interface SurveySystemConnector {
      * @return All the users in the survey system.
      */
     public ListUsersResponse listUsers();
+    
+    /**
+     * Updates an existing survey details.
+     * @param survey The existing survey details.
+     * @throws SurveySystemConnectorException In the case of any errors.
+     */
+    public void updateSurveyDetails(final SurveyDetails survey) throws SurveySystemConnectorException;
 
 }

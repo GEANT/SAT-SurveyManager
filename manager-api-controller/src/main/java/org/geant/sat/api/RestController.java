@@ -41,6 +41,8 @@ import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.QuestionsResponse;
 import org.geant.sat.api.dto.RoleDetails;
 import org.geant.sat.api.dto.RoleResponse;
+import org.geant.sat.api.dto.SurveyDetails;
+import org.geant.sat.api.dto.SurveyResponse;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.geant.sat.api.dto.UserResponse;
@@ -348,6 +350,49 @@ public class RestController {
         return new ResponseEntity<UserResponse>(response, HttpStatus.OK);
     }
 
+    /**
+     * Updates an existing survey.
+     * @param sid The survey identifier.
+     * @param body The details for the survey.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return The updated details for the survey.
+     */
+    @RequestMapping(headers = {
+            "content-type=application/json" }, value = "/surveys/{sid}", method = RequestMethod.PUT)
+    public @ResponseBody ResponseEntity<SurveyResponse> updateSurvey(@PathVariable String sid,
+            @RequestBody SurveyDetails body, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        log.debug("Starting /surveys PUT endpoint with sid={}", sid);
+        final SurveyResponse response = new SurveyResponse();
+        final SurveyDetails details = body;
+        if (!sid.equals(details.getSid())) {
+            log.error("Given sid {} doesn't match with the one in survey details {}", sid, details.getSid());
+            response.setErrorMessage("Given sid doesn't match with the one in survey details");
+            return new ResponseEntity<SurveyResponse>(response, HttpStatus.BAD_REQUEST);
+        }
+        final ListAllSurveysResponse surveyResponse;
+        try {
+            surveyConnector.updateSurveyDetails(details);
+            surveyResponse = surveyConnector.listSurveys();
+        } catch (SurveySystemConnectorException e) {
+            response.setErrorMessage(e.getMessage());
+            return new ResponseEntity<SurveyResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        if (surveyResponse.getErrorMessage() != null) {
+            response.setErrorMessage(surveyResponse.getErrorMessage());
+            return new ResponseEntity<SurveyResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        for (SurveyDetails survey : surveyResponse.getSurveys()) {
+            if (sid.equals(survey.getSid())) {
+                response.setSurvey(survey);
+                return new ResponseEntity<SurveyResponse>(response, HttpStatus.OK);
+            }
+        }
+        response.setErrorMessage("Could not fetch the status of the survey after update");
+        return new ResponseEntity<SurveyResponse>(response, HttpStatus.BAD_GATEWAY);
+    }
+
+    
     /**
      * Creates a new role. An error is returned if the role already exists.
      * @param roleName The role name.

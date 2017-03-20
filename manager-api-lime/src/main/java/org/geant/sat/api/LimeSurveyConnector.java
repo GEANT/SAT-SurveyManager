@@ -31,7 +31,11 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -65,6 +69,7 @@ import org.geant.sat.api.dto.lime.LimeQuestionDetails;
 import org.geant.sat.api.dto.lime.StringResultResponse;
 import org.geant.sat.api.dto.lime.SurveyOverview;
 import org.geant.sat.api.dto.lime.SurveyPropertiesResponse;
+import org.joda.time.DateTime;
 import org.geant.sat.api.dto.lime.LimeUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,10 +84,10 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /** The prefix for all the attributes stored in the Limesurvey database. */
     public static final String ATTRIBUTE_NAME_PREFIX = "lime_";
-    
+
     /** The attribute name for full name in the Limesurvey database. */
     public static final String ATTRIBUTE_NAME_FULL_NAME = ATTRIBUTE_NAME_PREFIX + "fullName";
-    
+
     /** The attribute name for email address in the Limesurvey database. */
     public static final String ATTRIBUTE_NAME_EMAIL = ATTRIBUTE_NAME_PREFIX + "email";
 
@@ -119,6 +124,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Get the username used for authenticating to Limesurvey API.
+     * 
      * @return The username used for authenticating to Limesurvey API.
      */
     public String getApiUser() {
@@ -127,7 +133,9 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Set the username used for authenticating to Limesurvey API.
-     * @param newApiUser What to set.
+     * 
+     * @param newApiUser
+     *            What to set.
      */
     public void setApiUser(String newApiUser) {
         this.apiUser = newApiUser;
@@ -135,6 +143,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Get the password used for authenticating to Limesurvey API.
+     * 
      * @return The password used for authenticating to Limesurvey API.
      */
     public String getApiPassword() {
@@ -143,7 +152,9 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Set the password used for authenticating to Limesurvey API.
-     * @param newApiPassword What to set.
+     * 
+     * @param newApiPassword
+     *            What to set.
      */
     public void setApiPassword(String newApiPassword) {
         this.apiPassword = newApiPassword;
@@ -151,6 +162,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Get the endpoint URL to Limesurvey API.
+     * 
      * @return The endpoint URL to Limesurvey API.
      */
     public String getApiEndpoint() {
@@ -159,12 +171,14 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Set the endpoint URL to Limesurvey API.
-     * @param newApiEndpoint What to set.
+     * 
+     * @param newApiEndpoint
+     *            What to set.
      */
     public void setApiEndpoint(String newApiEndpoint) {
         this.apiEndpoint = newApiEndpoint;
     }
-    
+
     /** {@inheritDoc} */
     public ListAllSurveysResponse listSurveys() {
         final ListAllSurveysResponse response = new ListAllSurveysResponse();
@@ -181,8 +195,15 @@ public class LimeSurveyConnector implements SurveySystemConnector {
                     for (int i = 0; i < overviews.length; i++) {
                         details[i] = new SurveyDetails();
                         if ("Y".equalsIgnoreCase(overviews[i].getActive())) {
-                            details[i].setActive(true);
+                            if (isExpired(overviews[i].getExpires())) {
+                                log.debug("The survey is active, but expired");
+                                details[i].setActive(false);
+                            } else {
+                                log.debug("The survey is active and not expired");
+                                details[i].setActive(true);
+                            }
                         } else {
+                            log.debug("The survey is not active, expiration not checked");
                             details[i].setActive(false);
                         }
                         details[i].setSid(overviews[i].getSid());
@@ -269,7 +290,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
         response.setAnswers(answers);
         return response;
     }
-    
+
     /** {@inheritDoc} */
     public ListUsersResponse listUsers() {
         final ListUsersResponse response = new ListUsersResponse();
@@ -290,10 +311,74 @@ public class LimeSurveyConnector implements SurveySystemConnector {
         }
         return response;
     }
+
+    /** {@inheritDoc} */
+    public void updateSurveyDetails(final SurveyDetails survey) throws SurveySystemConnectorException {
+        final String sid = survey.getSid();
+        final ListSurveysResponse response = fetchSurveys();
+        for (SurveyOverview overview : response.getSurveys()) {
+            if (sid.equals(overview.getSid())) {
+                if ("N".equalsIgnoreCase(overview.getActive())) {
+                    if (survey.getActive()) {
+                        log.debug("Activating the survey {}", sid);
+                        final String contents = getContents("activate_survey", "\"" + sid + "\"", true);
+                    }
+                } else {
+                    final DateTime expiration = getDateFromTimestamp(overview.getExpires());
+                    log.debug("Parsed the following expiration date {}", expiration);
+                    if (survey.getActive()) {
+                        if (expiration != null && expiration.isBeforeNow()) {
+                            log.debug("Removing the expiration timestamp for survey {}", sid);
+                            final String contents = getContents("set_survey_properties",
+                                    "\"" + sid + "\", { \"expires\": null} ", true);
+                        }
+                    } else {
+                        if (expiration == null || expiration.isAfterNow()) {
+                            log.debug("Adding the expiration timestamp for survey {}", sid);
+                            final String contents = getContents("set_survey_properties",
+                                    "\"" + sid + "\", { \"expires\": \"" + getCurrentTimestamp() + "\"} ", true);
+                        }
+                    }
+                }
+                return;
+            }
+        }
+        throw new SurveySystemConnectorException("Survey " + sid + " not found to be updated!");
+    }
     
+    protected static String getCurrentTimestamp() {
+        final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS");
+        final String timestamp = dateFormat.format(new Date());
+        return timestamp;
+    }
+    
+    protected static DateTime getDateFromTimestamp(final String timestamp) {
+        
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS");
+        try {
+            return new DateTime(dateFormat.parse(timestamp));
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+    
+    protected static boolean isExpired(final String timestamp) {
+        if (timestamp == null) {
+            return false;
+        }
+        final DateTime dateTime = getDateFromTimestamp(timestamp);
+        if (dateTime == null) {
+            return false;
+        }
+        return (dateTime.isBeforeNow());
+    }
+
     /**
-     * Parses the selected attributes from the given details into a map of attributes.
-     * @param limeDetails The user details in the Limesurvey database.
+     * Parses the selected attributes from the given details into a map of
+     * attributes.
+     * 
+     * @param limeDetails
+     *            The user details in the Limesurvey database.
      * @return The map of selected attributes and their values.
      */
     protected Map<String, String> parseUserAttributes(final LimeUserDetails limeDetails) {
@@ -305,22 +390,29 @@ public class LimeSurveyConnector implements SurveySystemConnector {
         addIfValueNotEmpty(attributes, ATTRIBUTE_NAME_MODIFIED, limeDetails.getModified());
         return attributes;
     }
-    
+
     /**
-     * Adds a new attribute key and value to the given map, if the value is not empty.
-     * @param attributes The map of attributes.
-     * @param key The key for the attribute.
-     * @param value The value for the attribute.
+     * Adds a new attribute key and value to the given map, if the value is not
+     * empty.
+     * 
+     * @param attributes
+     *            The map of attributes.
+     * @param key
+     *            The key for the attribute.
+     * @param value
+     *            The value for the attribute.
      */
     protected void addIfValueNotEmpty(final Map<String, String> attributes, final String key, final String value) {
         if (value != null && value.length() > 0) {
             attributes.put(key, value);
         }
     }
-    
+
     /**
      * Parses the limesurvey global roles into a set of roles.
-     * @param limeDetails The user details in the Limesurvey database.
+     * 
+     * @param limeDetails
+     *            The user details in the Limesurvey database.
      * @return The set of global roles.
      */
     protected Set<String> parseUserRoles(final LimeUserDetails limeDetails) {
@@ -332,7 +424,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
         for (final LimePermission permission : permissions) {
             if ("global".equalsIgnoreCase(permission.getEntity())) {
                 roles.add(permission.getPermission());
-                log.debug("Added global permission {} as role" , permission.getPermission());
+                log.debug("Added global permission {} as role", permission.getPermission());
             } else {
                 log.trace("Ignored non-global ({}) permission {}", permission.getEntity(), permission.getPermission());
             }
@@ -342,8 +434,11 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Parses a CSV line separated by '\",' -strings.
-     * @param line The line to be parsed.
-     * @param questionTitles The list of question titles.
+     * 
+     * @param line
+     *            The line to be parsed.
+     * @param questionTitles
+     *            The list of question titles.
      * @return The answer details, parsed from the given line.
      */
     protected AnswerDetails parseAnswerLine(final String line, final List<String> questionTitles) {
@@ -371,8 +466,11 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Get the username for the given user identifier.
-     * @param users The list of Limesurvey users.
-     * @param id The identifier for the user to be returned.
+     * 
+     * @param users
+     *            The list of Limesurvey users.
+     * @param id
+     *            The identifier for the user to be returned.
      * @return The username corresponding to the given identifier.
      */
     protected String getUsername(final LimeUserDetails[] users, final String id) {
@@ -387,13 +485,20 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Parses the response from the Limesurvey API.
-     * @param method The HTTP method.
-     * @param params The parameters for the request.
-     * @param response The response from the Limesurvey API.
-     * @param retry Whether to try again if first request fails.
-     * @param <T> The format of the response.
+     * 
+     * @param method
+     *            The HTTP method.
+     * @param params
+     *            The parameters for the request.
+     * @param response
+     *            The response from the Limesurvey API.
+     * @param retry
+     *            Whether to try again if first request fails.
+     * @param <T>
+     *            The format of the response.
      * @return The parsed response.
-     * @throws SurveySystemConnectorException If the communication or response parsing fails.
+     * @throws SurveySystemConnectorException
+     *             If the communication or response parsing fails.
      */
     protected <T extends AbstractLimeSurveyResponse> T getContents(final String method, final String params, T response,
             boolean retry) throws SurveySystemConnectorException {
@@ -419,8 +524,10 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Fetches the surveys from Limesurvey.
+     * 
      * @return The list of surveys.
-     * @throws SurveySystemConnectorException If the communication fails.
+     * @throws SurveySystemConnectorException
+     *             If the communication fails.
      */
     protected ListSurveysResponse fetchSurveys() throws SurveySystemConnectorException {
         return getContents("list_surveys", null, new ListSurveysResponse(), true);
@@ -428,8 +535,10 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Fetches the users from Limesurvey.
+     * 
      * @return The list of users.
-     * @throws SurveySystemConnectorException If the communication fails.
+     * @throws SurveySystemConnectorException
+     *             If the communication fails.
      */
     protected ListLimeUsersResponse fetchUsers() throws SurveySystemConnectorException {
         return getContents("list_users", null, new ListLimeUsersResponse(), true);
@@ -437,9 +546,12 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Fetches the answers from Limesurvey.
-     * @param sid The survey identifier.
+     * 
+     * @param sid
+     *            The survey identifier.
      * @return The answers in CSV.
-     * @throws SurveySystemConnectorException If the communication fails.
+     * @throws SurveySystemConnectorException
+     *             If the communication fails.
      */
     protected String fetchAnswers(final String sid) throws SurveySystemConnectorException {
         final StringResultResponse stringResponse = getContents("export_responses", "\"" + sid + "\", \"csv\"",
@@ -454,7 +566,9 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Get the status -value from the given contents, if it exists.
-     * @param contents The JSON contents in raw string.
+     * 
+     * @param contents
+     *            The JSON contents in raw string.
      * @return The status if it exists, null otherwise.
      */
     protected String getStatusIfExists(final String contents) {
@@ -472,9 +586,12 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Fetches the questions from Limesurvey.
-     * @param sid The survey identifier.
+     * 
+     * @param sid
+     *            The survey identifier.
      * @return The list of questions.
-     * @throws SurveySystemConnectorException If the communication fails.
+     * @throws SurveySystemConnectorException
+     *             If the communication fails.
      */
     protected ListQuestionsResponse fetchQuestions(final String sid) throws SurveySystemConnectorException {
         final String contents = getContents("list_questions", "\"" + sid + "\"", true);
@@ -484,9 +601,12 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Get the owner identifier for a survey.
-     * @param sid The survey identifier.
+     * 
+     * @param sid
+     *            The survey identifier.
      * @return The owner identifier.
-     * @throws SurveySystemConnectorException If the communication fails.
+     * @throws SurveySystemConnectorException
+     *             If the communication fails.
      */
     protected String getOwner(final String sid) throws SurveySystemConnectorException {
         final String contents = getContents("get_survey_properties", "\"" + sid + "\", [\"owner_id\", \"admin\"]",
@@ -497,11 +617,16 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Contacts Limesurvey API with the given method and parameters.
-     * @param method The Limesurvey method.
-     * @param params The Limesurvey parameters.
-     * @param addSessionKey Whether or not to add the session key to the request.
+     * 
+     * @param method
+     *            The Limesurvey method.
+     * @param params
+     *            The Limesurvey parameters.
+     * @param addSessionKey
+     *            Whether or not to add the session key to the request.
      * @return The response contents as raw string if the status code was 200.
-     * @throws SurveySystemConnectorException If the communication fails (response code not 200).
+     * @throws SurveySystemConnectorException
+     *             If the communication fails (response code not 200).
      */
     protected String getContents(final String method, final String params, boolean addSessionKey)
             throws SurveySystemConnectorException {
@@ -542,7 +667,9 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Updates the session key, i.e. authenticates to Limesurvey.
-     * @throws SurveySystemConnectorException If the communication fails.
+     * 
+     * @throws SurveySystemConnectorException
+     *             If the communication fails.
      */
     protected void updateSessionKey() throws SurveySystemConnectorException {
         final String contents = getContents("get_session_key", "\"" + apiUser + "\", \"" + apiPassword + "\"", false);
@@ -564,9 +691,12 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Parses the session key from the contents.
-     * @param contents The JSON contents in raw string.
+     * 
+     * @param contents
+     *            The JSON contents in raw string.
      * @return The session key.
-     * @throws SurveySystemConnectorException If the session key cannot be parsed.
+     * @throws SurveySystemConnectorException
+     *             If the session key cannot be parsed.
      */
     protected String getSessionKey(final String contents) throws SurveySystemConnectorException {
         Gson gson = new Gson();
@@ -580,8 +710,11 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /**
      * Parses the error message if it's found from the contents.
-     * @param contents The JSON contents in raw string.
-     * @return The exception containing the parsed error message if it was found.
+     * 
+     * @param contents
+     *            The JSON contents in raw string.
+     * @return The exception containing the parsed error message if it was
+     *         found.
      */
     protected SurveySystemConnectorException getSessionKeyFailed(final String contents) {
         Gson gson = new Gson();

@@ -230,6 +230,11 @@ public class SatApiClient {
         return getResponseWithPut(url, encoded, RoleResponse.class, true);
     }
     
+    /**
+     * Update existing survey in the Survey Manager API.
+     * @param details The details for the survey to be updated.
+     * @return The details for the updated survey.
+     */
     public SurveyResponse updateSurvey(final SurveyDetails details) {
     	final String url = apiBaseUrl + "/surveys/" + details.getSid();
     	final Gson gson = new Gson();

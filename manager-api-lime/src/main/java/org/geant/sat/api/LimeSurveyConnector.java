@@ -353,7 +353,9 @@ public class LimeSurveyConnector implements SurveySystemConnector {
     }
     
     protected static DateTime getDateFromTimestamp(final String timestamp) {
-        
+        if (timestamp == null) {
+            return null;
+        }
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS");
         try {
             return new DateTime(dateFormat.parse(timestamp));

@@ -34,7 +34,7 @@ See LICENSE.txt file in the root directory of this repository for the copyright/
         <module>./manager-api-lime</module>
         <module>./manager-api-controller</module>
         <module>./manager-api-userdb</module>
-<!--        <module>./manager-ui</module>-->
+        <module>./manager-ui</module>
     </modules>
 
     <dependencyManagement>

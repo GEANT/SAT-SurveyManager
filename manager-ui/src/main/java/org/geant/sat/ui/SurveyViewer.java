@@ -80,7 +80,6 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
             surveys.addColumn(SurveyDetails::getTitle).setCaption(getString("lang.surveys.column.title"));
             surveys.addColumn(SurveyDetails::getSid).setCaption(getString("lang.surveys.column.sid"));
             surveys.addColumn(SurveyDetails::getOwner).setCaption(getString("lang.surveys.column.owner"));
-            surveys.addColumn(SurveyDetails::getActive).setCaption(getString("lang.surveys.column.active"));
             Column<SurveyDetails, String> column = surveys.addColumn(surveydetail -> isActive(surveydetail),
                     new HtmlRenderer()).setCaption(getString("lang.surveys.column.active"));
             column.setStyleGenerator(userdetail -> "active");

@@ -43,6 +43,9 @@ public class SurveyOverview {
 
     /** Whether the survey is active. */
     private String active;
+    
+    /** The expiration timestamp (yyyy-mm-dd hh:MM:ss). */
+    private String expires;
 
     /**
      * Get the survey identifier.
@@ -90,5 +93,21 @@ public class SurveyOverview {
      */
     public void setActive(String newActive) {
         this.active = newActive;
+    }
+    
+    /**
+     * Get the expiration timestamp.
+     * @return The expiration timestamp.
+     */
+    public String getExpires() {
+        return expires;
+    }
+    
+    /**
+     * Set the expiration timestamp.
+     * @param expiration What to set.
+     */
+    public void setExpires(final String expiration) {
+        expires = expiration;
     }
 }

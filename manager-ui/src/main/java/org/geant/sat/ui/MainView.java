@@ -84,7 +84,16 @@ public class MainView extends AbstractSurveyVerticalLayout implements View {
         super(ui);
         Design.read(this);
         addStyleName(ValoTheme.MENU_PART_LARGE_ICONS);
-        menuContent.addComponent(createMenuButton(getString("lang.surveys"), MENU_SURVEYS));
+        // Menu items are set by roles.
+        // TODO: Make a configurable bean for role & view visibility
+
+        // Surveys are shown to admin,ass coord. and survey owner.
+        if (getMainUI().getRole().isAdmin(getMainUI().getUser().getDetails())
+                || getMainUI().getRole().isAssessmentCoordinator(getMainUI().getUser().getDetails())
+                || getMainUI().getRole().isSurveyOwner(getMainUI().getUser().getDetails())) {
+            menuContent.addComponent(createMenuButton(getString("lang.surveys"), MENU_SURVEYS));
+        }
+        // User list is shown to admin only
         if (getMainUI().getRole().isAdmin(getMainUI().getUser().getDetails())) {
             menuContent.addComponent(createMenuButton(getString("lang.users"), MENU_USERS));
         }

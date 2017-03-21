@@ -159,12 +159,16 @@ public class MainUI extends UI {
     /**
      * Method to load language resources.
      */
-    private void initLanguageBundle() {
-        WebBrowser browser = Page.getCurrent().getWebBrowser();
+    protected void initLanguageBundle() {
+        Locale locale = Locale.ENGLISH;
+        if (Page.getCurrent() != null && Page.getCurrent().getWebBrowser() != null
+                && Page.getCurrent().getWebBrowser().getLocale() != null) {
+            locale = Page.getCurrent().getWebBrowser().getLocale();
+        }
         try {
-            languageBundle = ResourceBundle.getBundle("Language", browser.getLocale());
+            languageBundle = ResourceBundle.getBundle("Language", locale);
         } catch (MissingResourceException e) {
-            LOG.debug("language file for " + browser.getLocale() + " not found, reverting to default");
+            LOG.debug("language file for " + locale + " not found, reverting to default");
             languageBundle = ResourceBundle.getBundle("Language", Locale.ROOT);
         }
     }

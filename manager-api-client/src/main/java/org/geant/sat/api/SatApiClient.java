@@ -58,6 +58,7 @@ import org.geant.sat.api.dto.RoleResponse;
 import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.SurveyResponse;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
+import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.geant.sat.api.dto.UserResponse;
 import org.slf4j.Logger;
@@ -160,6 +161,15 @@ public class SatApiClient {
         return getResponseWithGet(url, ListRolesResponse.class);
     }
 
+    /**
+     * Get all the entities from the Survey Manager API.
+     * @return All the entities from the Survey Manager API.
+     */
+    public ListEntitiesResponse getEntities() {
+        final String url = apiBaseUrl + "/entities";
+        return getResponseWithGet(url, ListEntitiesResponse.class);
+    }
+    
     /**
      * Get details for one user from the Survey Manager API.
      * @param principalId The principal identifier.

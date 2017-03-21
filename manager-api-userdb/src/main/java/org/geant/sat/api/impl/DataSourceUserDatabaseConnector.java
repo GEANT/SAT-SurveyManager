@@ -41,6 +41,7 @@ import javax.sql.DataSource;
 
 import org.geant.sat.api.SurveySystemConnectorException;
 import org.geant.sat.api.UserDatabaseConnector;
+import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.RoleDetails;
@@ -90,6 +91,15 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
         final String query = DataModelUtil.buildListRolesQuery() + ";";
         log.trace("Built query {}", query);
         return jdbcTemplate.query(query, new RoleDetailsExtractor());
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public ListEntitiesResponse listEntities() {
+        log.debug("Fetching all entities from the database");
+        final String query = DataModelUtil.buildEntitiesQuery() + ";";
+        log.trace("Built query {}", query);
+        return jdbcTemplate.query(query, new EntityDetailsExtractor());
     }
 
     /** {@inheritDoc} */

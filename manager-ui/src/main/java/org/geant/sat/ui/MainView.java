@@ -65,6 +65,8 @@ public class MainView extends AbstractSurveyVerticalLayout implements View {
     private static final String MENU_ABOUT = "about";
     /** Menu name for view Limesurvey. */
     private static final String MENU_LIMESURVEY = "limesurvey";
+    /** Menu name for view Entities. */
+    private static final String MENU_ENTITIES = "entities";
 
     /** Logger. */
     private final Logger log = LoggerFactory.getLogger(MainView.class);
@@ -92,6 +94,11 @@ public class MainView extends AbstractSurveyVerticalLayout implements View {
                 || getMainUI().getRole().isAssessmentCoordinator(getMainUI().getUser().getDetails())
                 || getMainUI().getRole().isSurveyOwner(getMainUI().getUser().getDetails())) {
             menuContent.addComponent(createMenuButton(getString("lang.surveys"), MENU_SURVEYS));
+        }
+        // Entities are shown to admin, and ass coord.
+        if (getMainUI().getRole().isAdmin(getMainUI().getUser().getDetails())
+                || getMainUI().getRole().isAssessmentCoordinator(getMainUI().getUser().getDetails())) {
+            menuContent.addComponent(createMenuButton(getString("lang.entities"), MENU_ENTITIES));
         }
         // User list is shown to admin only
         if (getMainUI().getRole().isAdmin(getMainUI().getUser().getDetails())) {

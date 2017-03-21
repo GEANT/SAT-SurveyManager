@@ -27,6 +27,7 @@
  */
 package org.geant.sat.api;
 
+import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.RoleDetails;
@@ -76,4 +77,10 @@ public interface UserDatabaseConnector {
      * @throws SurveySystemConnectorException If the operation fails.
      */
     public void updateRoleDetails(final RoleDetails role) throws SurveySystemConnectorException;
+    
+    /**
+     * List all the entities in the database.
+     * @return All the entities in the database.
+     */
+    public ListEntitiesResponse listEntities();
 }

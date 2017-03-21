@@ -30,7 +30,6 @@ package org.geant.sat.ui;
 
 import org.geant.sat.api.dto.AbstractConnectorResponse;
 
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.VerticalLayout;
 
 /** abstract base class for vertical layouts. */

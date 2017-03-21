@@ -321,6 +321,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
                 if ("N".equalsIgnoreCase(overview.getActive())) {
                     if (survey.getActive()) {
                         log.debug("Activating the survey {}", sid);
+                        //TODO: check answer contents
                         final String contents = getContents("activate_survey", "\"" + sid + "\"", true);
                     }
                 } else {
@@ -329,12 +330,14 @@ public class LimeSurveyConnector implements SurveySystemConnector {
                     if (survey.getActive()) {
                         if (expiration != null && expiration.isBeforeNow()) {
                             log.debug("Removing the expiration timestamp for survey {}", sid);
+                            //TODO: check answer contents
                             final String contents = getContents("set_survey_properties",
                                     "\"" + sid + "\", { \"expires\": null} ", true);
                         }
                     } else {
                         if (expiration == null || expiration.isAfterNow()) {
                             log.debug("Adding the expiration timestamp for survey {}", sid);
+                            //TODO: check answer contents
                             final String contents = getContents("set_survey_properties",
                                     "\"" + sid + "\", { \"expires\": \"" + getCurrentTimestamp() + "\"} ", true);
                         }
@@ -345,13 +348,22 @@ public class LimeSurveyConnector implements SurveySystemConnector {
         }
         throw new SurveySystemConnectorException("Survey " + sid + " not found to be updated!");
     }
-    
+
+    /**
+     * Get the current timestamp in Limesurvey format.
+     * @return The current timestamp in Limesurvey format.
+     */
     protected static String getCurrentTimestamp() {
         final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS");
         final String timestamp = dateFormat.format(new Date());
         return timestamp;
     }
-    
+
+    /**
+     * Get the given Limesurvey-formatted timestamp in {@link DateTime} format.
+     * @param timestamp The Limesurvey-formatted timestamp.
+     * @return The given Limesurvey-formatted timestamp in {@link DateTime} format.
+     */
     protected static DateTime getDateFromTimestamp(final String timestamp) {
         if (timestamp == null) {
             return null;
@@ -363,7 +375,12 @@ public class LimeSurveyConnector implements SurveySystemConnector {
             return null;
         }
     }
-    
+
+    /**
+     * Checks whether the given Limesurvey-formatted timestamp is in the past or not. Empty or nulls are not.
+     * @param timestamp The Limesurvey-formatted timestamp.
+     * @return True if the timestamp was in the past, false otherwise.
+     */
     protected static boolean isExpired(final String timestamp) {
         if (timestamp == null) {
             return false;
@@ -372,7 +389,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
         if (dateTime == null) {
             return false;
         }
-        return (dateTime.isBeforeNow());
+        return dateTime.isBeforeNow();
     }
 
     /**

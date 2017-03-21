@@ -27,6 +27,7 @@
  */
 package org.geant.sat.api;
 
+import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
@@ -83,4 +84,15 @@ public interface UserDatabaseConnector {
      * @return All the entities in the database.
      */
     public ListEntitiesResponse listEntities();
+    
+    /**
+     * Create a new entity to the database.
+     * @param name The name of the entity.
+     * @param description The description of the entity.
+     * @param creator The creator of the entity.
+     * @return The entity details.
+     * @throws SurveySystemConnectorException If the operation fails.
+     */
+    public EntityDetails createNewEntity(final String name, final String description, final String creator)
+            throws SurveySystemConnectorException;
 }

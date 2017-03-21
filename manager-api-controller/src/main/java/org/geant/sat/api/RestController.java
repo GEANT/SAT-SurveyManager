@@ -36,6 +36,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.geant.sat.api.dto.AnswersResponse;
+import org.geant.sat.api.dto.EntityDetails;
+import org.geant.sat.api.dto.EntityResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.QuestionsResponse;
@@ -410,6 +412,35 @@ public class RestController {
         return new ResponseEntity<SurveyResponse>(response, HttpStatus.BAD_GATEWAY);
     }
 
+    /**
+     * Creates a new entity. An error is returned if the entity with same name and creator already exists.
+     * @param name The name of the entity.
+     * @param description The description of the entity.
+     * @param creator The creator of the entity.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return The details for the created entity.
+     */
+    @RequestMapping(headers = {
+            "content-type=application/json" }, value = "/entities", method = RequestMethod.POST)
+    public @ResponseBody ResponseEntity<EntityResponse> insertEntity(
+            @RequestParam(value = "name", required = true) String name,
+            @RequestParam(value = "description", required = true) String description,
+            @RequestParam(value = "creator", required = true) String creator,
+            HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        log.debug("Starting /entities POST endpoint with name={}", name);
+        final EntityResponse response = new EntityResponse();
+        try {
+            final EntityDetails entity = userDbConnector.createNewEntity(name, description, creator);
+            response.setEntity(entity);
+        } catch (SurveySystemConnectorException e) {
+            log.error("Could not add the entity to the database", e);
+            response.setErrorMessage(e.getMessage());
+            return new ResponseEntity<EntityResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        return new ResponseEntity<EntityResponse>(response, HttpStatus.OK);
+    }
+
     
     /**
      * Creates a new role. An error is returned if the role already exists.
@@ -495,7 +526,7 @@ public class RestController {
     }
 
     /**
-     * Combines detaila from the Survey Manager and survey system user details.
+     * Combines details from the Survey Manager and survey system user details.
      * @param smUsers The survey Manager user details.
      * @param surveyUsers The survey system user details.
      * @param includeSurveyOnly Include also the ones that only exists in survey system.

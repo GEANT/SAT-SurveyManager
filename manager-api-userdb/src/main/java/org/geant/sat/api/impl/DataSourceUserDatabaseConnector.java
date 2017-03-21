@@ -41,6 +41,7 @@ import javax.sql.DataSource;
 
 import org.geant.sat.api.SurveySystemConnectorException;
 import org.geant.sat.api.UserDatabaseConnector;
+import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
@@ -100,6 +101,33 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
         final String query = DataModelUtil.buildEntitiesQuery() + ";";
         log.trace("Built query {}", query);
         return jdbcTemplate.query(query, new EntityDetailsExtractor());
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public synchronized EntityDetails createNewEntity(final String name, final String description, 
+            final String creator) throws SurveySystemConnectorException {
+        log.debug("Creating a new entity with name {}", name);
+        final Long userId = getUserId(creator);
+        log.debug("Found userId {} for {}", userId, creator);
+        final Long id = getEntityId(name, userId);
+        if (id > 0) {
+            log.error("The entity {} already exists with id {}", name, id);
+            throw new SurveySystemConnectorException("The entity already exists for the same user");
+        }
+        final String update = "INSERT INTO " + DataModelUtil.TABLE_NAME_ENTITY + " ("
+                + DataModelUtil.COLUMN_NAME_ENTITY_NAME + ", "
+                + DataModelUtil.COLUMN_NAME_ENTITY_DESCRIPTION + ", "
+                + DataModelUtil.COLUMN_NAME_ENTITY_USER_ID + ") VALUES (?, ?, ?);";
+        final Object[] params = new Object[] { name, description, userId };
+        int[] types = new int[] { Types.VARCHAR, Types.VARCHAR, Types.BIGINT };
+        int rowId = jdbcTemplate.update(update, params, types);
+        //TODO: check rowId
+        final String query = DataModelUtil.buildEntitiesQuery() + " AND " + DataModelUtil.TABLE_NAME_ENTITY + "." 
+                + DataModelUtil.COLUMN_NAME_ENTITY_ID + "=" + getEntityId(name, userId);
+        log.trace("Built query {}", query);
+        final ListEntitiesResponse response = jdbcTemplate.query(query, new EntityDetailsExtractor());
+        return response.getEntities().get(0);
     }
 
     /** {@inheritDoc} */
@@ -264,6 +292,21 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                 + DataModelUtil.COLUMN_NAME_USER_PRINCIPAL_ID + "='" + principalId + "'";
         log.trace("Created a query {}", query);
         return jdbcTemplate.query(query, new IdExtractor(DataModelUtil.COLUMN_NAME_USER_ID));
+    }
+    
+    /**
+     * Get the entity's database ID via the entity name and user ID.
+     * @param name The name of the entity.
+     * @param userId The creator of the entity.
+     * @return The entity's database ID.
+     */
+    protected Long getEntityId(final String name, final Long userId) {
+        final String query = "SELECT " + DataModelUtil.COLUMN_NAME_ENTITY_ID + " FROM "
+                + DataModelUtil.TABLE_NAME_ENTITY + " WHERE " + DataModelUtil.COLUMN_NAME_ENTITY_NAME + "='"
+                + name + "' AND " + DataModelUtil.COLUMN_NAME_ENTITY_USER_ID + "=" + userId + " AND "
+                + DataModelUtil.COLUMN_NAME_END + " IS NULL";
+        log.trace("Created a query {}", query);
+        return jdbcTemplate.query(query, new IdExtractor(DataModelUtil.COLUMN_NAME_ENTITY_ID));
     }
 
     /**

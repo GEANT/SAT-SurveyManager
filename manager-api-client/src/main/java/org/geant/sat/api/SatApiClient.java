@@ -28,6 +28,7 @@
 package org.geant.sat.api;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -50,6 +51,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.geant.sat.api.dto.AbstractConnectorResponse;
 import org.geant.sat.api.dto.AnswersResponse;
+import org.geant.sat.api.dto.EntityResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.QuestionsResponse;
@@ -168,6 +170,30 @@ public class SatApiClient {
     public ListEntitiesResponse getEntities() {
         final String url = apiBaseUrl + "/entities";
         return getResponseWithGet(url, ListEntitiesResponse.class);
+    }
+    
+    /**
+     * Creates a new entity to the Survey Manager database.
+     * @param name The name of the entity.
+     * @param description The description of the entity.
+     * @param creator The creator of the entity.
+     * @return The details for the entity.
+     */
+    public EntityResponse createEntity(final String name, final String description, final String creator) {
+        final String url = apiBaseUrl + "/entities";
+        final HttpPost method = new HttpPost(url);
+        final List<NameValuePair> postParameters = new ArrayList<>();
+        postParameters.add(new BasicNameValuePair("name", name));
+        postParameters.add(new BasicNameValuePair("description", description));
+        postParameters.add(new BasicNameValuePair("creator", creator));
+        try {
+            method.setEntity(new UrlEncodedFormEntity(postParameters));
+        } catch (UnsupportedEncodingException e) {
+            log.error("Could not encode the parameters to the request", e);
+            return null;
+        }
+        method.addHeader("content-type", "application/json");
+        return getResponse(method, EntityResponse.class, true);
     }
     
     /**

@@ -74,8 +74,8 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
         super(ui);
         Design.read(this);
         surveys.setSelectionMode(SelectionMode.NONE);
-        SurveyDetails[] details = getFilteredSurveyDetails();
-        if (details != null && details.length > 0) {
+        List<SurveyDetails> details = getFilteredSurveyDetails();
+        if (details != null && details.size() > 0) {
             surveys.setItems(details);
             surveys.addColumn(SurveyDetails::getTitle).setCaption(getString("lang.surveys.column.title"));
             surveys.addColumn(SurveyDetails::getSid).setCaption(getString("lang.surveys.column.sid"));
@@ -84,7 +84,7 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
                     new HtmlRenderer()).setCaption(getString("lang.surveys.column.active"));
             column.setStyleGenerator(userdetail -> "active");
             column.setId(COLUMN_ACTIVE);
-            surveys.setHeightByRows(details.length > 0 ? details.length : 1);
+            surveys.setHeightByRows(details.size() > 0 ? details.size() : 1);
             surveys.addItemClickListener(event -> handleEvent(event));
         } else {
             LOG.warn("no survey details found");
@@ -130,9 +130,9 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
      * 
      * @return filtered list of surveys.
      */
-    private SurveyDetails[] getFilteredSurveyDetails() {
+    private List<SurveyDetails> getFilteredSurveyDetails() {
 
-        SurveyDetails[] details = null;
+        List<SurveyDetails> details = null;
         if (getMainUI().getSatApiClient() != null && getMainUI().getSatApiClient().getSurveys() != null) {
             details = getMainUI().getSatApiClient().getSurveys().getSurveys();
         } else {
@@ -144,14 +144,14 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
             return details;
         }
         List<SurveyDetails> userSpecificList = new ArrayList<SurveyDetails>();
-        for (int i = 0; i < details.length; i++) {
+        for (int i = 0; i < details.size(); i++) {
             // Here is assumption that surveyowner cannot match principal of a
             // different user
-            if (user.getPrincipalId() != null && user.getPrincipalId().equals(details[i].getOwner())) {
-                userSpecificList.add(details[i]);
+            if (user.getPrincipalId() != null && user.getPrincipalId().equals(details.get(i).getOwner())) {
+                userSpecificList.add(details.get(i));
             }
         }
-        return userSpecificList.toArray(new SurveyDetails[userSpecificList.size()]);
+        return userSpecificList;
 
     }
 

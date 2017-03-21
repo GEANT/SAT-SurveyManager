@@ -188,28 +188,29 @@ public class LimeSurveyConnector implements SurveySystemConnector {
             if (surveys != null) {
                 response.setErrorMessage(surveys.getErrorMessage());
                 final SurveyOverview[] overviews = surveys.getSurveys();
-                final SurveyDetails[] details = new SurveyDetails[overviews.length];
+                final List<SurveyDetails> details = new ArrayList<>();
                 final ListLimeUsersResponse usersResponse = fetchUsers();
                 if (usersResponse != null) {
                     final LimeUserDetails[] users = usersResponse.getUsers();
                     for (int i = 0; i < overviews.length; i++) {
-                        details[i] = new SurveyDetails();
+                        final SurveyDetails newDetails = new SurveyDetails();
                         if ("Y".equalsIgnoreCase(overviews[i].getActive())) {
                             if (isExpired(overviews[i].getExpires())) {
                                 log.debug("The survey is active, but expired");
-                                details[i].setActive(false);
+                                newDetails.setActive(false);
                             } else {
                                 log.debug("The survey is active and not expired");
-                                details[i].setActive(true);
+                                newDetails.setActive(true);
                             }
                         } else {
                             log.debug("The survey is not active, expiration not checked");
-                            details[i].setActive(false);
+                            newDetails.setActive(false);
                         }
-                        details[i].setSid(overviews[i].getSid());
-                        details[i].setTitle(overviews[i].getTitle());
+                        newDetails.setSid(overviews[i].getSid());
+                        newDetails.setTitle(overviews[i].getTitle());
                         final String owner = getOwner(overviews[i].getSid());
-                        details[i].setOwner(getUsername(users, owner));
+                        newDetails.setOwner(getUsername(users, owner));
+                        details.add(newDetails);
                     }
                 }
                 response.setSurveys(details);

@@ -27,19 +27,22 @@
  */
 package org.geant.sat.api.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A response containing details for surveys.
  */
 public class ListAllSurveysResponse extends AbstractConnectorResponse {
 
     /** The details for surveys. */
-    private SurveyDetails[] surveys;
+    private List<SurveyDetails> surveys = new ArrayList<>();
 
     /**
      * Get the details for surveys.
      * @return The details for surveys.
      */
-    public SurveyDetails[] getSurveys() {
+    public List<SurveyDetails> getSurveys() {
         return surveys;
     }
 
@@ -47,7 +50,7 @@ public class ListAllSurveysResponse extends AbstractConnectorResponse {
      * Set the details for surveys.
      * @param newSurveys What to set.
      */
-    public void setSurveys(SurveyDetails[] newSurveys) {
+    public void setSurveys(List<SurveyDetails> newSurveys) {
         this.surveys = newSurveys;
     }
 }

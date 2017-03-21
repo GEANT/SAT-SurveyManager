@@ -44,6 +44,7 @@ import org.geant.sat.api.dto.RoleResponse;
 import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.SurveyResponse;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
+import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.geant.sat.api.dto.UserResponse;
 import org.slf4j.Logger;
@@ -206,6 +207,23 @@ public class RestController {
             return new ResponseEntity<ListRolesResponse>(response, HttpStatus.BAD_GATEWAY);
         }
         return new ResponseEntity<ListRolesResponse>(response, HttpStatus.OK);
+    }
+    
+    /**
+     * Lists all entities.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return All the entities.
+     */
+    @RequestMapping(value = "/entities", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<ListEntitiesResponse> listEntities(HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        log.debug("Starting /entities endpoint");
+        final ListEntitiesResponse response = userDbConnector.listEntities();
+        if (response.getErrorMessage() != null) {
+            return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.OK);
     }
 
     /**

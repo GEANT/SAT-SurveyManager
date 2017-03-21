@@ -116,6 +116,9 @@ public final class DataModelUtil {
     /** The column name for role description in the role table. */
     public static final String COLUMN_NAME_ROLE_DESCRIPTION = "description";
 
+    /** The column name for entity id (unique) in the entity table. */
+    public static final String COLUMN_NAME_ENTITY_ID = "id";
+    
     /** The column name for entity name in the entity table. */
     public static final String COLUMN_NAME_ENTITY_NAME = "name";
     
@@ -199,7 +202,7 @@ public final class DataModelUtil {
      */
     public static String buildEntitiesQuery() {
         final StringBuilder sb = new StringBuilder("SELECT ");
-        sb.append(TABLE_NAME_ENTITY + ".id, ");
+        sb.append(TABLE_NAME_ENTITY + "." + COLUMN_NAME_ENTITY_ID + ", ");
         sb.append(TABLE_NAME_ENTITY + "." + COLUMN_NAME_ENTITY_NAME + ", ");
         sb.append(TABLE_NAME_ENTITY + "." + COLUMN_NAME_ENTITY_DESCRIPTION + ", ");
         sb.append(TABLE_NAME_USER + "." + COLUMN_NAME_USER_PRINCIPAL_ID + ", ");

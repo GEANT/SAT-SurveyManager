@@ -38,7 +38,10 @@ import java.util.Set;
  */
 public class EntityDetails {
     
-    /** The name of the entity. */
+    /** The unique identifier for the entity. */
+    private String id;
+    
+    /** The name of the entity. Doesn't have to be unique. */
     private String name;
 
     /** The description of the entity. */
@@ -53,6 +56,22 @@ public class EntityDetails {
     /** The survey identifiers configured to this entity. */
     private Set<String> sids = new HashSet<>();
 
+    /**
+     * Get the unique identifier for the entity.
+     * @return The unique identifier for the entity.
+     */
+    public String getId() {
+        return id;
+    }
+    
+    /**
+     * Set the unique identifier for the entity.
+     * @param newId What to set.
+     */
+    public void setId(final String newId) {
+        id = newId;
+    }
+    
     /**
      * Get the name of the entity.
      * @return The name of the entity.

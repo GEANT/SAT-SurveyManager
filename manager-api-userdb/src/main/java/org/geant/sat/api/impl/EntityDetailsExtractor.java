@@ -51,14 +51,16 @@ public class EntityDetailsExtractor implements ResultSetExtractor<ListEntitiesRe
     public ListEntitiesResponse extractData(final ResultSet rs) throws SQLException, DataAccessException {
         final ListEntitiesResponse response = new ListEntitiesResponse();
         while (rs.next()) {
+            final String id = rs.getString(DataModelUtil.COLUMN_NAME_ENTITY_ID);
+            log.debug("Found an entity {} from the result set.", id);
             final String name = rs.getString(DataModelUtil.COLUMN_NAME_ENTITY_NAME);
-            log.debug("Found an entity {} from the result set.", name);
             final String description = rs.getString(DataModelUtil.COLUMN_NAME_ENTITY_DESCRIPTION);
             final String creator = rs.getString(DataModelUtil.COLUMN_NAME_USER_PRINCIPAL_ID);
             final String assessorValue = rs.getString(DataModelUtil.COLUMN_NAME_ASSESSOR_VALUE);
             final String assessorType = rs.getString(DataModelUtil.COLUMN_NAME_ASSESSOR_TYPE_TYPE);
             final String surveyId = rs.getString(DataModelUtil.COLUMN_NAME_ENTITY_SURVEY_SURVEY_ID);
-            final EntityDetails details = getExistingOrCreateNew(response, name);
+            final EntityDetails details = getExistingOrCreateNew(response, id);
+            details.setName(name);
             details.setDescription(description);
             details.setCreator(creator);
             details.getAssessors().put(assessorType, assessorValue);
@@ -71,18 +73,18 @@ public class EntityDetailsExtractor implements ResultSetExtractor<ListEntitiesRe
      * Get the existing entity details from the response if it was found with the same name, or creates a new one
      * if it wasn't.
      * @param response The response to be searched from.
-     * @param name The entity name to be searched.
+     * @param id The entity name to be searched.
      * @return The existing or new entity details.
      */
-    protected EntityDetails getExistingOrCreateNew(final ListEntitiesResponse response, final String name) {
+    protected EntityDetails getExistingOrCreateNew(final ListEntitiesResponse response, final String id) {
         for (final EntityDetails details : response.getEntities()) {
-            if (name.equals(details.getName())) {
-                log.debug("Found existing details for {} from the response", name);
+            if (id.equals(details.getId())) {
+                log.debug("Found existing details for {} from the response", id);
                 return details;
             }
         }
         final EntityDetails details = new EntityDetails();
-        details.setName(name);
+        details.setId(id);
         response.getEntities().add(details);
         return details;
     }

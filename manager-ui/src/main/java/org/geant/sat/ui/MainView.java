@@ -130,6 +130,10 @@ public class MainView extends AbstractSurveyVerticalLayout implements View {
     @SuppressWarnings("rawtypes")
     @Override
     public void enter(ViewChangeEvent event) {
+        if (MENU_ENTITIES.equals(event.getParameters())) {
+            workPanel.setContent(new EntityViewer((MainUI) getUI()));
+            return;
+        }
         if (MENU_SURVEYS.equals(event.getParameters())) {
             workPanel.setContent(new SurveyViewer((MainUI) getUI()));
             return;

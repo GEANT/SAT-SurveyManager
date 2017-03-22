@@ -422,7 +422,7 @@ public class RestController {
      * @return The details for the created entity.
      */
     @RequestMapping(headers = {
-            "content-type=application/json" }, value = "/entities", method = RequestMethod.POST)
+            "application/x-www-form-urlencoded" }, value = "/entities", method = RequestMethod.POST)
     public @ResponseBody ResponseEntity<EntityResponse> insertEntity(
             @RequestParam(value = "name", required = true) String name,
             @RequestParam(value = "description", required = true) String description,

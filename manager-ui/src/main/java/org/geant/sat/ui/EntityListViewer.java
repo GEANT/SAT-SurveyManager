@@ -37,9 +37,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.vaadin.annotations.DesignRoot;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Grid.Column;
 import com.vaadin.ui.Grid.SelectionMode;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.declarative.Design;
 
 /**
@@ -53,7 +59,9 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
     private static final Logger LOG = LoggerFactory.getLogger(EntityListViewer.class);
 
     /** Table showing entities. */
-    Grid<EntityDetails> entities;
+    private Grid<EntityDetails> entities;
+    /** Add entity button */
+    private Button addEntity;
 
     /**
      * Constructor. Populates the table with survey information.
@@ -64,11 +72,14 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
     public EntityListViewer(MainUI ui) {
         super(ui);
         Design.read(this);
+        addEntity.setCaption(getString("lang.button.add"));
+        addEntity.addClickListener(this::addEntity);
         entities.setSelectionMode(SelectionMode.NONE);
         List<EntityDetails> details = getFilteredEntityDetails();
         if (details != null && details.size() > 0) {
             entities.setItems(details);
             entities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
+            entities.addColumn(EntityDetails::getDescription).setCaption(getString("lang.entities.column.description"));
             entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"));
             Column<EntityDetails, String> column = entities.addColumn(entitydetail -> getSids(entitydetail))
                     .setCaption(getString("lang.entities.column.sid"));
@@ -82,6 +93,69 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         } else {
             LOG.warn("no survey details found");
         }
+    }
+
+    /**
+     * Add entity click handler - creates a sub window for user to enter the
+     * data.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void addEntity(ClickEvent event) {
+
+        // We create a simple window for user to enter entity information
+        // no declarative design used, we form it locally
+        Window subWindowNewEntity = new Window(getString("lang.window.newentity.title"));
+        subWindowNewEntity.setModal(true);
+        subWindowNewEntity.setWidth("50%");
+        VerticalLayout subContent = new VerticalLayout();
+        TextField field = new TextField(getString("lang.window.newentity.textFieldName"));
+        field.setWidth("80%");
+        subContent.addComponent(field, 0);
+        field = new TextField(getString("lang.window.newentity.textFieldDescription"));
+        field.setWidth("80%");
+        subContent.addComponent(field, 1);
+        Button okButton = new Button(getString("lang.window.newentity.buttonCreate"));
+        subContent.addComponent(okButton, 2);
+        okButton.addClickListener(this::addedEntity);
+        Button cancelButton = new Button(getString("lang.window.newentity.buttonCancel"));
+        subContent.addComponent(cancelButton, 3);
+        cancelButton.addClickListener(this::canceledEntityAdd);
+        subWindowNewEntity.setContent(subContent);
+        subWindowNewEntity.center();
+        getMainUI().addWindow(subWindowNewEntity);
+
+    }
+
+    /**
+     * Adds a new entity.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void addedEntity(ClickEvent event) {
+        String name = ((TextField) ((VerticalLayout) event.getButton().getParent()).getComponent(0)).getValue();
+        String description = ((TextField) ((VerticalLayout) event.getButton().getParent()).getComponent(1)).getValue();
+        if (name == null || name.length() == 0 || description == null || description.length() == 0) {
+            Notification.show(getString("lang.notification.warning.procedurenotcompleted"),
+                    getString("lang.notification.entityrequirements"), Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+        indicateSuccess(getMainUI().getSatApiClient().createEntity(name, description,
+                getMainUI().getUser().getDetails().getPrincipalId()));
+        entities.setItems(getFilteredEntityDetails());
+        ((Window) event.getButton().getParent().getParent()).close();
+    }
+
+    /**
+     * Closes add new entity window.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void canceledEntityAdd(ClickEvent event) {
+        ((Window) event.getButton().getParent().getParent()).close();
     }
 
     /**

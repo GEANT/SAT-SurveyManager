@@ -356,7 +356,7 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
      */
     protected Long getAssessorId(final String value, final Long assessorTypeId) {
         final String query = "SELECT " + DataModelUtil.COLUMN_NAME_ASSESSOR_ID + " FROM "
-                + DataModelUtil.TABLE_NAME_ASSESSOR + " WHERE " + DataModelUtil.COLUMN_NAME_ASSESSOR_TYPE_ID
+                + DataModelUtil.TABLE_NAME_ASSESSOR + " WHERE " + DataModelUtil.COLUMN_NAME_ASSESSOR_TYPEID
                 + "=" + assessorTypeId + " AND " + DataModelUtil.COLUMN_NAME_ASSESSOR_VALUE + "='" + value + "'";
         log.trace("Created a query {}", query);
         return jdbcTemplate.query(query, new IdExtractor(DataModelUtil.COLUMN_NAME_ASSESSOR_ID));

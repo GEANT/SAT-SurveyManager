@@ -29,9 +29,13 @@
 package org.geant.sat.ui;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.geant.sat.api.dto.EntityDetails;
+import org.geant.sat.api.dto.ListAllSurveysResponse;
+import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.UserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,6 +146,21 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         // getMainUI().getSatApiClient().getSurveys().
         // selectSids.setI
         TwinColSelect<String> selectSids = new TwinColSelect<>(getString("lang.window.newentity.editsids.sids"));
+        ListAllSurveysResponse resp = getMainUI().getSatApiClient().getSurveys();
+        if (!indicateSuccess(resp)) {
+            return;
+        }
+        List<SurveyDetails> surveyDetails = resp.getSurveys();
+        // parse active sids
+        List<String> activeSurveyDetails = new ArrayList<String>();
+        for (SurveyDetails surveyDetail : surveyDetails) {
+            if (surveyDetail.getActive()) {
+                activeSurveyDetails.add(surveyDetail.getSid());
+            }
+        }
+        selectSids.setItems(activeSurveyDetails);
+        // set current sids as selection
+        selectSids.updateSelection(details.getSids(), new HashSet<String>());
         subContent.addComponent(selectSids, 0);
         Button editButton = new Button(getString("lang.window.newentity.buttonModify"));
         subContent.addComponent(editButton, 1);

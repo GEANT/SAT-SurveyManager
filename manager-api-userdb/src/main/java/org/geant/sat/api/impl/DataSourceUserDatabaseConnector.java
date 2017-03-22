@@ -111,7 +111,7 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
         final Long userId = getUserId(creator);
         log.debug("Found userId {} for {}", userId, creator);
         final Long id = getEntityId(name, userId);
-        if (id > 0) {
+        if (id != null) {
             log.error("The entity {} already exists with id {}", name, id);
             throw new SurveySystemConnectorException("The entity already exists for the same user");
         }

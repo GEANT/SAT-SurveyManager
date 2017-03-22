@@ -63,8 +63,12 @@ public class EntityDetailsExtractor implements ResultSetExtractor<ListEntitiesRe
             details.setName(name);
             details.setDescription(description);
             details.setCreator(creator);
-            details.getAssessors().put(assessorType, assessorValue);
-            details.getSids().add(surveyId);
+            if (assessorType != null && assessorValue != null) {
+                details.getAssessors().put(assessorType, assessorValue);
+            }
+            if (surveyId != null) {
+                details.getSids().add(surveyId);
+            }
         }
         return response;
     }

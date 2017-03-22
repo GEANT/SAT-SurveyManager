@@ -425,6 +425,7 @@ public class SatApiClient {
             final String backup) {
         final Gson gson = new Gson();
         try {
+            log.trace("Building a new instance of {}", clazz);
             final T instance = gson.fromJson(contents, clazz);
             final String error = instance.getErrorMessage();
             if (error == null) {
@@ -433,7 +434,7 @@ public class SatApiClient {
             return error;
         } catch (JsonSyntaxException e) {
             log.warn("Could not decode the contents from JSON", e);
-            return null;
+            return backup;
         }
     }
 

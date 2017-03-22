@@ -27,7 +27,9 @@
  */
 package org.geant.sat.api;
 
+import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
+import org.geant.sat.api.dto.ListAssessorsResponse;
 import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
@@ -95,4 +97,22 @@ public interface UserDatabaseConnector {
      */
     public EntityDetails createNewEntity(final String name, final String description, final String creator)
             throws SurveySystemConnectorException;
+
+    /**
+     * List all the assessors in the database.
+     * @return All the assessors in the database.
+     */
+    public ListAssessorsResponse listAssessors();
+
+    /**
+     * Create a new assessor to the database.
+     * @param type The type of the assessor.
+     * @param value The value of the assessor (corresponding to the type).
+     * @param description The description for the assessor.
+     * @return The details for the assessor.
+     * @throws SurveySystemConnectorException If the operation fails.
+     */
+    public AssessorDetails createNewAssessor(final String type, final String value, final String description)
+            throws SurveySystemConnectorException;
+
 }

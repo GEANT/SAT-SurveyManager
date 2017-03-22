@@ -41,7 +41,9 @@ import javax.sql.DataSource;
 
 import org.geant.sat.api.SurveySystemConnectorException;
 import org.geant.sat.api.UserDatabaseConnector;
+import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
+import org.geant.sat.api.dto.ListAssessorsResponse;
 import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
@@ -105,6 +107,15 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
     
     /** {@inheritDoc} */
     @Override
+    public ListAssessorsResponse listAssessors() {
+        log.debug("Fetching all assessors from the database");
+        final String query = DataModelUtil.buildAssessorsQuery() + ";";
+        log.trace("Built query {}", query);
+        return jdbcTemplate.query(query, new AssessorDetailsExtractor());
+    }    
+    
+    /** {@inheritDoc} */
+    @Override
     public synchronized EntityDetails createNewEntity(final String name, final String description, 
             final String creator) throws SurveySystemConnectorException {
         log.debug("Creating a new entity with name {}", name);
@@ -128,6 +139,36 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
         log.trace("Built query {}", query);
         final ListEntitiesResponse response = jdbcTemplate.query(query, new EntityDetailsExtractor());
         return response.getEntities().get(0);
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public AssessorDetails createNewAssessor(final String type, final String value, final String description)
+            throws SurveySystemConnectorException {
+        log.debug("Creating a new assessor type {} with value {}", type, value);
+        final Long typeId = getAssessorTypeId(type);
+        if (typeId == null) {
+            log.error("The assessor type {} does not exist in the database!", type);
+            throw new SurveySystemConnectorException("The assessor type " + type + " does not exist in the database");
+        }
+        final Long assessorId = getAssessorId(value, typeId);
+        if (assessorId != null) {
+            log.error("The assessor with type {} and value {} already exists!", type, value);
+            throw new SurveySystemConnectorException("The assessor with the same type and value already exists");
+        }
+        final String update = "INSERT INTO " + DataModelUtil.TABLE_NAME_ASSESSOR + " ("
+                + DataModelUtil.COLUMN_NAME_ASSESSOR_TYPEID + ", "
+                + DataModelUtil.COLUMN_NAME_ASSESSOR_VALUE + ", "
+                + DataModelUtil.COLUMN_NAME_ASSESSOR_DESCRIPTION + ") VALUES (?, ?, ?)";
+        final Object[] params = new Object[] { typeId, value, description };
+        int[] types = new int[] { Types.BIGINT, Types.VARCHAR, Types.VARCHAR };
+        int rowId = jdbcTemplate.update(update, params, types);
+        //TODO: check rowId
+        final String query = DataModelUtil.buildEntitiesQuery() + " AND " + DataModelUtil.TABLE_NAME_ENTITY + "." 
+                + DataModelUtil.COLUMN_NAME_ASSESSOR_ID + "=" + getAssessorId(value, typeId);
+        log.trace("Built query {}", query);
+        final ListAssessorsResponse response = jdbcTemplate.query(query, new AssessorDetailsExtractor());
+        return response.getAssessors().get(0);
     }
 
     /** {@inheritDoc} */
@@ -292,6 +333,33 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                 + DataModelUtil.COLUMN_NAME_USER_PRINCIPAL_ID + "='" + principalId + "'";
         log.trace("Created a query {}", query);
         return jdbcTemplate.query(query, new IdExtractor(DataModelUtil.COLUMN_NAME_USER_ID));
+    }
+    
+    /**
+     * Get the assessor type's database ID via the type name.
+     * @param assessorType The assessor type name.
+     * @return The assessor type's database ID.
+     */
+    protected Long getAssessorTypeId(final String assessorType) {
+        final String query = "SELECT " + DataModelUtil.COLUMN_NAME_ASSESSOR_TYPE_ID + " FROM "
+                + DataModelUtil.TABLE_NAME_ASSESSOR_TYPE + " WHERE " + DataModelUtil.COLUMN_NAME_ASSESSOR_TYPE_TYPE
+                + "='" + assessorType + "'";
+        log.trace("Created a query {}", query);
+        return jdbcTemplate.query(query, new IdExtractor(DataModelUtil.COLUMN_NAME_ASSESSOR_TYPE_ID));
+    }
+    
+    /**
+     * Get the assessor's database ID via the type ID and value.
+     * @param value The assessor value.
+     * @param assessorTypeId The assessor type's database ID.
+     * @return The assessor's database ID.
+     */
+    protected Long getAssessorId(final String value, final Long assessorTypeId) {
+        final String query = "SELECT " + DataModelUtil.COLUMN_NAME_ASSESSOR_ID + " FROM "
+                + DataModelUtil.TABLE_NAME_ASSESSOR + " WHERE " + DataModelUtil.COLUMN_NAME_ASSESSOR_TYPE_ID
+                + "=" + assessorTypeId + " AND " + DataModelUtil.COLUMN_NAME_ASSESSOR_VALUE + "='" + value + "'";
+        log.trace("Created a query {}", query);
+        return jdbcTemplate.query(query, new IdExtractor(DataModelUtil.COLUMN_NAME_ASSESSOR_ID));
     }
     
     /**

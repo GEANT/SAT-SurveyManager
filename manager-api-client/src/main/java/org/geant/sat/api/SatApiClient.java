@@ -51,6 +51,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.geant.sat.api.dto.AbstractConnectorResponse;
 import org.geant.sat.api.dto.AnswersResponse;
+import org.geant.sat.api.dto.AssessorResponse;
 import org.geant.sat.api.dto.EntityResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
@@ -60,6 +61,7 @@ import org.geant.sat.api.dto.RoleResponse;
 import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.SurveyResponse;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
+import org.geant.sat.api.dto.ListAssessorsResponse;
 import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.geant.sat.api.dto.UserResponse;
@@ -171,7 +173,16 @@ public class SatApiClient {
         final String url = apiBaseUrl + "/entities";
         return getResponseWithGet(url, ListEntitiesResponse.class);
     }
-    
+
+    /**
+     * Get all the assessors from the Survey Manager API.
+     * @return All the assessors from the Survey Manager API.
+     */
+    public ListAssessorsResponse getAssessors() {
+        final String url = apiBaseUrl + "/assessorss";
+        return getResponseWithGet(url, ListAssessorsResponse.class);
+    }
+
     /**
      * Creates a new entity to the Survey Manager database.
      * @param name The name of the entity.
@@ -194,6 +205,30 @@ public class SatApiClient {
         }
         method.addHeader("content-type", "application/x-www-form-urlencoded");
         return getResponse(method, EntityResponse.class, true);
+    }
+    
+    /**
+     * Creates a new assessor to the Survey Manager database.
+     * @param type The type of the assessor.
+     * @param value The value of the assessor (corresponding to the type).
+     * @param description The description for the assessor.
+     * @return The details for the assessor.
+     */
+    public AssessorResponse createAssessor(final String type, final String value, final String description) {
+        final String url = apiBaseUrl + "/assessors";
+        final HttpPost method = new HttpPost(url);
+        final List<NameValuePair> postParameters = new ArrayList<>();
+        postParameters.add(new BasicNameValuePair("type", type));
+        postParameters.add(new BasicNameValuePair("value", value));
+        postParameters.add(new BasicNameValuePair("description", description));
+        try {
+            method.setEntity(new UrlEncodedFormEntity(postParameters));
+        } catch (UnsupportedEncodingException e) {
+            log.error("Could not encode the parameters to the request", e);
+            return null;
+        }
+        method.addHeader("content-type", "application/x-www-form-urlencoded");
+        return getResponse(method, AssessorResponse.class, true);
     }
     
     /**

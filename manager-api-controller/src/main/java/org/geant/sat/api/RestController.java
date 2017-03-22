@@ -36,6 +36,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.geant.sat.api.dto.AnswersResponse;
+import org.geant.sat.api.dto.AssessorDetails;
+import org.geant.sat.api.dto.AssessorResponse;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.EntityResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
@@ -46,6 +48,7 @@ import org.geant.sat.api.dto.RoleResponse;
 import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.SurveyResponse;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
+import org.geant.sat.api.dto.ListAssessorsResponse;
 import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.geant.sat.api.dto.UserResponse;
@@ -226,6 +229,23 @@ public class RestController {
             return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.BAD_GATEWAY);
         }
         return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.OK);
+    }
+
+    /**
+     * Lists all assessors.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return All the assessors.
+     */
+    @RequestMapping(value = "/assessors", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<ListAssessorsResponse> listAssessors(HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        log.debug("Starting /entities endpoint");
+        final ListAssessorsResponse response = userDbConnector.listAssessors();
+        if (response.getErrorMessage() != null) {
+            return new ResponseEntity<ListAssessorsResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        return new ResponseEntity<ListAssessorsResponse>(response, HttpStatus.OK);
     }
 
     /**
@@ -439,6 +459,35 @@ public class RestController {
             return new ResponseEntity<EntityResponse>(response, HttpStatus.BAD_GATEWAY);
         }
         return new ResponseEntity<EntityResponse>(response, HttpStatus.OK);
+    }
+
+    /**
+     * Creates a new assessor. An error is returned if the assessor with same type and value already exists.
+     * @param value The value for the assessor.
+     * @param description The description of the assessor.
+     * @param type The existing type name for the assessor.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return The details for the created assessor.
+     */
+    @RequestMapping(headers = {
+            "content-type=application/x-www-form-urlencoded" }, value = "/assessors", method = RequestMethod.POST)
+    public @ResponseBody ResponseEntity<AssessorResponse> insertAssessor(
+            @RequestParam(value = "value", required = true) String value,
+            @RequestParam(value = "description", required = true) String description,
+            @RequestParam(value = "type", required = true) String type,
+            HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        log.debug("Starting /assessors POST endpoint with value={}", value);
+        final AssessorResponse response = new AssessorResponse();
+        try {
+            final AssessorDetails entity = userDbConnector.createNewAssessor(value, type, description);
+            response.setEntity(entity);
+        } catch (SurveySystemConnectorException e) {
+            log.error("Could not add the assessor to the database", e);
+            response.setErrorMessage(e.getMessage());
+            return new ResponseEntity<AssessorResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        return new ResponseEntity<AssessorResponse>(response, HttpStatus.OK);
     }
 
     

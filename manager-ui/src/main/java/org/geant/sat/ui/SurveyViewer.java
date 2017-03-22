@@ -62,7 +62,7 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
     private static final String COLUMN_ACTIVE = "active";
 
     /** Table showing surveys. */
-    Grid<SurveyDetails> surveys;
+    private Grid<SurveyDetails> surveys;
 
     /**
      * Constructor. Populates the table with survey information.

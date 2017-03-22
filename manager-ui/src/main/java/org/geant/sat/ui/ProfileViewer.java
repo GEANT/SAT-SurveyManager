@@ -53,13 +53,13 @@ public class ProfileViewer extends AbstractSurveyVerticalLayout {
     private static final Logger LOG = LoggerFactory.getLogger(ProfileViewer.class);
 
     /** user principal. */
-    TextField principal;
+    private TextField principal;
     /** survey tool principal. */
-    TextField surveyPrincipal;
+    private TextField surveyPrincipal;
     /** roles grid. */
-    Grid<String> roles;
+    private Grid<String> roles;
     /** attributes grid. */
-    Grid<AttributeList.Attribute> attributes;
+    private Grid<AttributeList.Attribute> attributes;
 
     // Grid attributes;
 
@@ -100,7 +100,8 @@ public class ProfileViewer extends AbstractSurveyVerticalLayout {
      */
     class AttributeList {
 
-        List<Attribute> attributes = new ArrayList<Attribute>();
+        /** Attribute list to show in grid.*/
+        private List<Attribute> attributes = new ArrayList<Attribute>();
 
         /** Attribute to show in grid. */
         class Attribute {

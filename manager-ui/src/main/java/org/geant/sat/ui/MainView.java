@@ -72,9 +72,9 @@ public class MainView extends AbstractSurveyVerticalLayout implements View {
     private final Logger log = LoggerFactory.getLogger(MainView.class);
 
     /** Layout for menu. */
-    VerticalLayout menuContent;
+    private VerticalLayout menuContent;
     /** Panel for work views. */
-    Panel workPanel;
+    private Panel workPanel;
 
     /**
      * Constructor. Initializes menu.
@@ -215,9 +215,9 @@ public class MainView extends AbstractSurveyVerticalLayout implements View {
     class AboutViewer extends VerticalLayout {
 
         /** text string 1. */
-        Label text1;
+        private Label text1;
         /** text string 2. */
-        Label text2;
+        private Label text2;
 
         /**
          * Constructor.

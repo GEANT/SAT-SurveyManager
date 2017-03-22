@@ -66,7 +66,7 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
     private static final String COLUMN_SO = "so";
 
     /** Table showing user profile. */
-    Grid<UserDetails> users;
+    private Grid<UserDetails> users;
 
     /**
      * Constructor. Populates the table with user information.

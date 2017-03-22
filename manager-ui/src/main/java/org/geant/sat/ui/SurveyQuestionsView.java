@@ -47,7 +47,7 @@ public class SurveyQuestionsView extends AbstractSurveyVerticalLayout {
     private static final Logger LOG = LoggerFactory.getLogger(SurveyQuestionsView.class);
 
     /** Table showing survey questions. */
-    Grid<QuestionDetails> questions;
+    private Grid<QuestionDetails> questions;
 
     /**
      * Constructor.

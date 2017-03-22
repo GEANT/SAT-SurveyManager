@@ -131,7 +131,7 @@ public class MainView extends AbstractSurveyVerticalLayout implements View {
     @Override
     public void enter(ViewChangeEvent event) {
         if (MENU_ENTITIES.equals(event.getParameters())) {
-            workPanel.setContent(new EntityViewer((MainUI) getUI()));
+            workPanel.setContent(new EntityListViewer((MainUI) getUI()));
             return;
         }
         if (MENU_SURVEYS.equals(event.getParameters())) {

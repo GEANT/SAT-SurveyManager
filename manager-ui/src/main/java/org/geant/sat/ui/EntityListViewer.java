@@ -41,9 +41,11 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Grid.Column;
+import com.vaadin.ui.Grid.ItemClick;
 import com.vaadin.ui.Grid.SelectionMode;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.declarative.Design;
@@ -57,6 +59,12 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
 
     /** Logger. */
     private static final Logger LOG = LoggerFactory.getLogger(EntityListViewer.class);
+
+    /** Column name for sids column. */
+    private static final String COLUMN_SIDS = "sids";
+
+    /** Column name for assessors column. */
+    private static final String COLUMN_ASSESSORS = "assessors";
 
     /** Table showing entities. */
     private Grid<EntityDetails> entities;
@@ -83,16 +91,92 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"));
             Column<EntityDetails, String> column = entities.addColumn(entitydetail -> getSids(entitydetail))
                     .setCaption(getString("lang.entities.column.sid"));
+            column.setId(COLUMN_SIDS);
             column.setHidable(true);
             column.setHidden(true);
             column = entities.addColumn(entitydetail -> getAssessors(entitydetail)).setCaption(
                     getString("lang.entities.column.assesors"));
+            column.setId(COLUMN_ASSESSORS);
             column.setHidable(true);
             column.setHidden(true);
+            entities.addItemClickListener(event -> handleEvent(event));
             entities.setHeightByRows(details.size() > 0 ? details.size() : 1);
         } else {
             LOG.warn("no survey details found");
         }
+    }
+
+    /**
+     * Handles click events.
+     * 
+     * @param event
+     *            representing the click.
+     */
+    private void handleEvent(ItemClick<EntityDetails> event) {
+        if (!event.getMouseEventDetails().isDoubleClick()) {
+            // not a double click
+            return;
+        }
+        EntityDetails details = event.getItem();
+        if (event.getColumn().getId() == null) {
+            // not a editable column
+            return;
+        }
+        switch (event.getColumn().getId()) {
+        case COLUMN_SIDS:
+            editSids(details);
+            break;
+        case COLUMN_ASSESSORS:
+            editAssessors(details);
+        default:
+            break;
+        }
+    }
+
+    private void editSids(EntityDetails details) {
+        Window subWindowNewEntity = new Window(getString("lang.window.newentity.editsids.title"));
+        subWindowNewEntity.setModal(true);
+        VerticalLayout subContent = new VerticalLayout();
+        // form a list of surveys as name/sid strings
+        // preselect the surveys that exist already//
+        // getMainUI().getSatApiClient().getSurveys().
+        // selectSids.setI
+        TwinColSelect<String> selectSids = new TwinColSelect<>(getString("lang.window.newentity.editsids.sids"));
+        subContent.addComponent(selectSids, 0);
+        Button editButton = new Button(getString("lang.window.newentity.buttonModify"));
+        subContent.addComponent(editButton, 1);
+        editButton.addClickListener(this::editSurveys);
+        Button cancelButton = new Button(getString("lang.window.newentity.buttonCancel"));
+        subContent.addComponent(cancelButton, 2);
+        cancelButton.addClickListener(this::canceledEditSurveys);
+        subWindowNewEntity.setContent(subContent);
+        getMainUI().addWindow(subWindowNewEntity);
+
+    }
+
+    /**
+     * Edits the list of surveys of a entity.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void editSurveys(ClickEvent event) {
+        entities.setItems(getFilteredEntityDetails());
+        ((Window) event.getButton().getParent().getParent()).close();
+    }
+
+    /**
+     * Closes edit surveys window.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void canceledEditSurveys(ClickEvent event) {
+        ((Window) event.getButton().getParent().getParent()).close();
+    }
+
+    private void editAssessors(EntityDetails details) {
+        Notification.show("editAssessors");
     }
 
     /**
@@ -144,8 +228,8 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         }
         indicateSuccess(getMainUI().getSatApiClient().createEntity(name, description,
                 getMainUI().getUser().getDetails().getPrincipalId()));
-        entities.setItems(getFilteredEntityDetails());
         ((Window) event.getButton().getParent().getParent()).close();
+        entities.setItems(getFilteredEntityDetails());
     }
 
     /**

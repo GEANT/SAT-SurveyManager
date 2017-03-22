@@ -69,6 +69,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * This class represents a simple client wrapper to the Survey Manager API.
@@ -179,7 +180,7 @@ public class SatApiClient {
      * @return All the assessors from the Survey Manager API.
      */
     public ListAssessorsResponse getAssessors() {
-        final String url = apiBaseUrl + "/assessorss";
+        final String url = apiBaseUrl + "/assessors";
         return getResponseWithGet(url, ListAssessorsResponse.class);
     }
 
@@ -401,13 +402,39 @@ public class SatApiClient {
                 log.warn("Authentication fails with username {}", username);
             }
             log.error("Unexpected response code from the API: {}", statusCode);
-            log.debug("The contents {}", EntityUtils.toString(response.getEntity()));
-            return buildNewInstance(clazz, "Unexpected response code from the API: " + statusCode);
+            final String contents = EntityUtils.toString(response.getEntity());
+            log.debug("The contents {}", contents);
+            final String errorMessage = getErrorMessage(clazz, contents, "Unexpected response code from the API: " 
+                    + statusCode);
+            return buildNewInstance(clazz, errorMessage);
         } catch (IOException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
             log.error("Error during the API call", e);
             return buildNewInstance(clazz, "Internal server error during the API call");
         }
 
+    }
+    
+    /**
+     * Parses the error message from the given contents, or returns backup if not found.
+     * @param clazz The class for the expected response.
+     * @param contents The contents of the response.
+     * @param backup The backup error message if no error was found.
+     * @return The error message.
+     */
+    protected <T extends AbstractConnectorResponse> String getErrorMessage(Class<T> clazz, final String contents, 
+            final String backup) {
+        final Gson gson = new Gson();
+        try {
+            final T instance = gson.fromJson(contents, clazz);
+            final String error = instance.getErrorMessage();
+            if (error == null) {
+                return backup;
+            }
+            return error;
+        } catch (JsonSyntaxException e) {
+            log.warn("Could not decode the contents from JSON", e);
+            return null;
+        }
     }
 
     /**

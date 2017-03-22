@@ -192,7 +192,7 @@ public class SatApiClient {
             log.error("Could not encode the parameters to the request", e);
             return null;
         }
-        method.addHeader("content-type", "application/json");
+        method.addHeader("content-type", "application/x-www-form-urlencoded");
         return getResponse(method, EntityResponse.class, true);
     }
     
@@ -366,6 +366,7 @@ public class SatApiClient {
                 log.warn("Authentication fails with username {}", username);
             }
             log.error("Unexpected response code from the API: {}", statusCode);
+            log.debug("The contents {}", EntityUtils.toString(response.getEntity()));
             return buildNewInstance(clazz, "Unexpected response code from the API: " + statusCode);
         } catch (IOException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
             log.error("Error during the API call", e);

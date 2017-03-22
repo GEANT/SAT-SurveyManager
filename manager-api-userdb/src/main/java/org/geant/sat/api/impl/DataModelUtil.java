@@ -127,16 +127,22 @@ public final class DataModelUtil {
     
     /** The column name for user id in the entity table. */
     public static final String COLUMN_NAME_ENTITY_USER_ID = "userId";
-    
+
+    /** The column name for assessor id in the assessor table. */
+    public static final String COLUMN_NAME_ASSESSOR_ID = "id";
+
     /** The column name for assessor value in the assessor table. */
     public static final String COLUMN_NAME_ASSESSOR_VALUE = "value";
     
     /** The column name for assessor type id in the assessor table. */
-    public static final String COLUMN_NAME_ASSESSOR_TYPE_ID = "assessorTypeId";
+    public static final String COLUMN_NAME_ASSESSOR_TYPEID = "assessorTypeId";
     
     /** The column name for description in the assessor table. */
     public static final String COLUMN_NAME_ASSESSOR_DESCRIPTION = "description";
     
+    /** The column name for id in the assessor type table. */
+    public static final String COLUMN_NAME_ASSESSOR_TYPE_ID = "id";
+
     /** The column name for type in the assessor type table. */
     public static final String COLUMN_NAME_ASSESSOR_TYPE_TYPE = "type";
     
@@ -218,10 +224,23 @@ public final class DataModelUtil {
         sb.append(" ON " + TABLE_NAME_ASSESSOR + ".id = " + TABLE_NAME_ENTITY_ASSESSOR + "." + COLUMN_NAME_ENTITY_ASSESSOR_ASSESSOR_ID);
         sb.append(" AND " + TABLE_NAME_ENTITY_ASSESSOR + "." + COLUMN_NAME_END + " IS NULL");
         sb.append(" LEFT OUTER JOIN " + TABLE_NAME_ASSESSOR_TYPE);
-        sb.append(" ON " + TABLE_NAME_ASSESSOR_TYPE + ".id = " + TABLE_NAME_ASSESSOR + "." + COLUMN_NAME_ASSESSOR_TYPE_ID);
+        sb.append(" ON " + TABLE_NAME_ASSESSOR_TYPE + ".id = " + TABLE_NAME_ASSESSOR + "." + COLUMN_NAME_ASSESSOR_TYPEID);
         sb.append(" LEFT OUTER JOIN " + TABLE_NAME_ENTITY_SURVEY);
         sb.append(" ON " + TABLE_NAME_ENTITY_SURVEY + "." + COLUMN_NAME_ENTITY_SURVEY_ENTITY_ID + " = " + TABLE_NAME_ENTITY + ".id");
         sb.append(" WHERE " + TABLE_NAME_ENTITY + "." + COLUMN_NAME_END + " IS NULL");
+        return sb.toString();
+    }
+    
+    public static String buildAssessorsQuery() {
+        final StringBuilder sb = new StringBuilder("SELECT ");
+        sb.append(TABLE_NAME_ASSESSOR + ".id, ");
+        sb.append(TABLE_NAME_ASSESSOR + "." + COLUMN_NAME_ASSESSOR_VALUE + ", ");
+        sb.append(TABLE_NAME_ASSESSOR + "." + COLUMN_NAME_ASSESSOR_DESCRIPTION + ", ");
+        sb.append(TABLE_NAME_ASSESSOR_TYPE + "." + COLUMN_NAME_ASSESSOR_TYPE_TYPE);
+        sb.append(" FROM " + TABLE_NAME_ASSESSOR + " LEFT OUTER JOIN " + TABLE_NAME_ASSESSOR_TYPE);
+        sb.append(" ON " + TABLE_NAME_ASSESSOR + "." + COLUMN_NAME_ASSESSOR_TYPEID + "=" + TABLE_NAME_ASSESSOR_TYPE + ".id");
+        sb.append(" AND " + TABLE_NAME_ASSESSOR_TYPE + "." + COLUMN_NAME_END + " IS NULL");
+        sb.append(" WHERE " + TABLE_NAME_ASSESSOR + "." + COLUMN_NAME_END + " IS NULL");
         return sb.toString();
     }
 

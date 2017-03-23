@@ -51,7 +51,7 @@ public class EntityDetails {
     private String creator;
     
     /** The assessors configured to this entity. */
-    private Map<String, String> assessors = new HashMap<>();
+    private Map<String, AssessorDetails> assessors = new HashMap<>();
     
     /** The survey identifiers configured to this entity. */
     private Set<String> sids = new HashSet<>();
@@ -124,7 +124,7 @@ public class EntityDetails {
      * Get the assessors configured to this entity.
      * @return The assessors configured to this entity.
      */
-    public Map<String, String> getAssessors() {
+    public Map<String, AssessorDetails> getAssessors() {
         return assessors;
     }
 
@@ -132,7 +132,7 @@ public class EntityDetails {
      * Set the assessors configured to this entity.
      * @param newAssessors What to set.
      */
-    public void setAssessors(Map<String, String> newAssessors) {
+    public void setAssessors(Map<String, AssessorDetails> newAssessors) {
         this.assessors = newAssessors;
     }
 

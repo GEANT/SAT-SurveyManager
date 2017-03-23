@@ -31,6 +31,7 @@ package org.geant.sat.api.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.slf4j.Logger;
@@ -64,7 +65,10 @@ public class EntityDetailsExtractor implements ResultSetExtractor<ListEntitiesRe
             details.setDescription(description);
             details.setCreator(creator);
             if (assessorType != null && assessorValue != null) {
-                details.getAssessors().put(assessorType, assessorValue);
+                final AssessorDetails assessor = new AssessorDetails();
+                assessor.setType(assessorType);
+                assessor.setValue(assessorValue);
+                details.getAssessors().put(assessorValue, assessor);
             }
             if (surveyId != null) {
                 details.getSids().add(surveyId);

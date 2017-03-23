@@ -31,7 +31,6 @@ package org.geant.sat.ui;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
@@ -146,6 +145,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         // getMainUI().getSatApiClient().getSurveys().
         // selectSids.setI
         TwinColSelect<String> selectSids = new TwinColSelect<>(getString("lang.window.newentity.editsids.sids"));
+        selectSids.setData(details);
         ListAllSurveysResponse resp = getMainUI().getSatApiClient().getSurveys();
         if (!indicateSuccess(resp)) {
             return;
@@ -180,6 +180,15 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
      *            button click event.
      */
     private void editSurveys(ClickEvent event) {
+        @SuppressWarnings("unchecked")
+        TwinColSelect<String> select = ((TwinColSelect<String>) ((VerticalLayout) event.getButton().getParent())
+                .getComponent(0));
+        EntityDetails details = (EntityDetails) select.getData();
+        LOG.debug("Original surveys " + details.getSids());
+        details.getSids().clear();
+        details.getSids().addAll(select.getSelectedItems());
+        LOG.debug("New set of surveys " + details.getSids());
+        // TODO: update
         entities.setItems(getFilteredEntityDetails());
         ((Window) event.getButton().getParent().getParent()).close();
     }

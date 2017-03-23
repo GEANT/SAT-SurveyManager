@@ -187,7 +187,7 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
             }
         }
         for (final String sid : sids) {
-            if (storedSids.contains(sid)) {
+            if (!storedSids.contains(sid)) {
                 log.debug("Adding survey ID {} for entity {}", sid, id);
                 final String update = "INSERT INTO " + DataModelUtil.TABLE_NAME_ENTITY_SURVEY + " ("
                         + DataModelUtil.COLUMN_NAME_ENTITY_SURVEY_ENTITY_ID + ", " 

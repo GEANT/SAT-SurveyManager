@@ -51,7 +51,9 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.geant.sat.api.dto.AbstractConnectorResponse;
 import org.geant.sat.api.dto.AnswersResponse;
+import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.AssessorResponse;
+import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.EntityResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
@@ -312,6 +314,30 @@ public class SatApiClient {
     	final Gson gson = new Gson();
     	final String encoded = gson.toJson(details);
     	return getResponseWithPut(url, encoded, SurveyResponse.class, true);
+    }
+    
+    /**
+     * Update existing assessor in the Survey Manager API.
+     * @param details The details for the assessor to be updated.
+     * @return The details for the updated assessor.
+     */
+    public AssessorResponse updateAssessor(final AssessorDetails details) {
+        final String url = apiBaseUrl + "/assessors/" + details.getId();
+        final Gson gson = new Gson();
+        final String encoded = gson.toJson(details);
+        return getResponseWithPut(url, encoded, AssessorResponse.class, true);
+    }
+
+    /**
+     * Update existing entity in the Survey Manager API.
+     * @param details The details for the entity to be updated.
+     * @return The details for the updated entity.
+     */
+    public EntityResponse updateEntity(final EntityDetails details) {
+        final String url = apiBaseUrl + "/entities/" + details.getId();
+        final Gson gson = new Gson();
+        final String encoded = gson.toJson(details);
+        return getResponseWithPut(url, encoded, EntityResponse.class, true);
     }
 
     /**

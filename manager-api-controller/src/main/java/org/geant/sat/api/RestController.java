@@ -460,6 +460,48 @@ public class RestController {
         }
         return new ResponseEntity<EntityResponse>(response, HttpStatus.OK);
     }
+    
+    /**
+     * Updates an existing entity. An error is returned if the entity does not exist.
+     * @param id The id of the entity.
+     * @param body The details of the entity.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return The details for the updated entity.
+     */
+    @RequestMapping(headers = {
+            "content-type=application/json" }, value = "/entities/{id}", method = RequestMethod.PUT)
+    public @ResponseBody ResponseEntity<EntityResponse> updateEntity(@PathVariable String id,
+            @RequestBody EntityDetails body, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        log.debug("Starting /entities PUT endpoint with id={}", id);
+        final EntityResponse response = new EntityResponse();
+        final EntityDetails details = body;
+        if (!id.equals(details.getId())) {
+            log.error("Given id {} doesn't match with the one in entity details {}", id, details.getId());
+            response.setErrorMessage("Given id doesn't match with the one in entity details");
+            return new ResponseEntity<EntityResponse>(response, HttpStatus.BAD_REQUEST);
+        }
+        final ListEntitiesResponse entitiesResponse;
+        try {
+            userDbConnector.updateEntityDetails(details);
+            entitiesResponse = userDbConnector.listEntities();
+        } catch (SurveySystemConnectorException e) {
+            response.setErrorMessage(e.getMessage());
+            return new ResponseEntity<EntityResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        if (entitiesResponse.getErrorMessage() != null) {
+            response.setErrorMessage(entitiesResponse.getErrorMessage());
+            return new ResponseEntity<EntityResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        for (EntityDetails entity : entitiesResponse.getEntities()) {
+            if (id.equals(entity.getId())) {
+                response.setEntity(entity);
+                return new ResponseEntity<EntityResponse>(response, HttpStatus.OK);
+            }
+        }
+        response.setErrorMessage("Could not fetch the status of the entity after update");
+        return new ResponseEntity<EntityResponse>(response, HttpStatus.BAD_GATEWAY);
+    }
 
     /**
      * Creates a new assessor. An error is returned if the assessor with same type and value already exists.

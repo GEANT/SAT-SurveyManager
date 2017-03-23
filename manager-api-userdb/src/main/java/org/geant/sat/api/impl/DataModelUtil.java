@@ -231,6 +231,7 @@ public final class DataModelUtil {
         sb.append(" ON " + TABLE_NAME_ASSESSOR_TYPE + ".id = " + TABLE_NAME_ASSESSOR + "." + COLUMN_NAME_ASSESSOR_TYPEID);
         sb.append(" LEFT OUTER JOIN " + TABLE_NAME_ENTITY_SURVEY);
         sb.append(" ON " + TABLE_NAME_ENTITY_SURVEY + "." + COLUMN_NAME_ENTITY_SURVEY_ENTITY_ID + " = " + TABLE_NAME_ENTITY + ".id");
+        sb.append(" AND " + TABLE_NAME_ENTITY_SURVEY + "." + COLUMN_NAME_END + " IS NULL");
         sb.append(" WHERE " + TABLE_NAME_ENTITY + "." + COLUMN_NAME_END + " IS NULL");
         return sb.toString();
     }

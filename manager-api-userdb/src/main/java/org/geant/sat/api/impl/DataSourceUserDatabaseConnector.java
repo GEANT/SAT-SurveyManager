@@ -147,12 +147,60 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
     /** {@inheritDoc} */
     @Override
     public synchronized void updateEntityDetails(final EntityDetails entity) throws SurveySystemConnectorException {
-        log.debug("Updating an existing entity with id {}", entity.getId());
-        final EntityDetails storedDetails = getStoredEntityDetails(entity.getId());
+        final String id = entity.getId();
+        log.debug("Updating an existing entity with id {}", id);
+        final EntityDetails storedDetails = getStoredEntityDetails(id);
         if (storedDetails == null) {
-            throw new SurveySystemConnectorException("Could not find existing entity with id " + entity.getId());
+            throw new SurveySystemConnectorException("Could not find existing entity with id " + id);
         }
-        //TODO: implementation
+        if (!entity.getName().equals(storedDetails.getName())
+                || !entity.getDescription().equals(storedDetails.getDescription())) {
+            log.debug("Updating the entity table");
+            final String update = "UPDATE " + DataModelUtil.TABLE_NAME_ENTITY + " SET "
+                    + DataModelUtil.COLUMN_NAME_ENTITY_NAME + "=?, " 
+                    + DataModelUtil.COLUMN_NAME_ENTITY_DESCRIPTION + "=? WHERE " 
+                    + DataModelUtil.COLUMN_NAME_ENTITY_ID + "=?";
+            final Object[] params = new Object[] { entity.getName(), entity.getDescription(), id };
+            int[] types = new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR };
+            int rowId = jdbcTemplate.update(update, params, types);
+            if (rowId < 1) {
+                log.error("Could not update entity details for {} with clause {}", id, update);
+                throw new SurveySystemConnectorException("Could not update entity details for " + id);
+            }
+        }
+        final Set<String> storedSids = storedDetails.getSids();
+        final Set<String> sids = entity.getSids();
+        for (final String sid : storedDetails.getSids()) {
+            if (!sids.contains(sid)) {
+                log.debug("Invalidating survey ID {} for entity {}", sid, id);
+                final String update = "UPDATE " + DataModelUtil.TABLE_NAME_ENTITY_SURVEY + " SET "
+                        + DataModelUtil.COLUMN_NAME_END + "=? WHERE " 
+                        + DataModelUtil.COLUMN_NAME_ENTITY_SURVEY_ENTITY_ID + "=? AND " 
+                        + DataModelUtil.COLUMN_NAME_ENTITY_SURVEY_SURVEY_ID + "=?";
+                final Object[] params = new Object[] { new Timestamp(System.currentTimeMillis()), id, sid };
+                int[] types = new int[] { Types.TIMESTAMP, Types.BIGINT, Types.BIGINT };
+                int rowId = jdbcTemplate.update(update, params, types);
+                if (rowId < 1) {
+                    log.error("Could not update entity survey details for {} with clause {}", id, update);
+                    throw new SurveySystemConnectorException("Could not update entity survey details for " + id);
+                }             
+            }
+        }
+        for (final String sid : sids) {
+            if (storedSids.contains(sid)) {
+                log.debug("Adding survey ID {} for entity {}", sid, id);
+                final String update = "INSERT INTO " + DataModelUtil.TABLE_NAME_ENTITY_SURVEY + " ("
+                        + DataModelUtil.COLUMN_NAME_ENTITY_SURVEY_ENTITY_ID + ", " 
+                        + DataModelUtil.COLUMN_NAME_ENTITY_SURVEY_SURVEY_ID + ") VALUES (?,?)";
+                final Object[] params = new Object[] { id, sid };
+                int[] types = new int[] { Types.BIGINT, Types.VARCHAR };
+                int rowId = jdbcTemplate.update(update, params, types);
+                if (rowId < 1) {
+                    log.error("Could not add entity survey details for {} with clause {}", id, update);
+                    throw new SurveySystemConnectorException("Could not add entity survey details for " + id);
+                }             
+            }
+        }
     }
 
     /** {@inheritDoc} */

@@ -83,7 +83,7 @@ public abstract class AbstractSurveyVerticalLayout extends VerticalLayout {
      *            to check for.
      * @return false if error occurred.
      */
-    public boolean indicateSuccess(AbstractConnectorResponse response) {
+    public boolean verifySuccess(AbstractConnectorResponse response) {
         return getMainUI().indicateSuccess(response);
     }
 

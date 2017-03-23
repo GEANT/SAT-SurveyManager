@@ -57,6 +57,7 @@ public class EntityDetailsExtractor implements ResultSetExtractor<ListEntitiesRe
             final String name = rs.getString(DataModelUtil.COLUMN_NAME_ENTITY_NAME);
             final String description = rs.getString(DataModelUtil.COLUMN_NAME_ENTITY_DESCRIPTION);
             final String creator = rs.getString(DataModelUtil.COLUMN_NAME_USER_PRINCIPAL_ID);
+            final String assessorId = rs.getString(DataModelUtil.INT_COLUMN_NAME_ASSESSOR_ID);
             final String assessorValue = rs.getString(DataModelUtil.COLUMN_NAME_ASSESSOR_VALUE);
             final String assessorType = rs.getString(DataModelUtil.COLUMN_NAME_ASSESSOR_TYPE_TYPE);
             final String surveyId = rs.getString(DataModelUtil.COLUMN_NAME_ENTITY_SURVEY_SURVEY_ID);
@@ -64,11 +65,12 @@ public class EntityDetailsExtractor implements ResultSetExtractor<ListEntitiesRe
             details.setName(name);
             details.setDescription(description);
             details.setCreator(creator);
-            if (assessorType != null && assessorValue != null) {
+            if (assessorId != null && assessorType != null && assessorValue != null) {
                 final AssessorDetails assessor = new AssessorDetails();
+                assessor.setId(assessorId);
                 assessor.setType(assessorType);
                 assessor.setValue(assessorValue);
-                details.getAssessors().put(assessorValue, assessor);
+                details.getAssessors().put(assessorId, assessor);
             }
             if (surveyId != null) {
                 details.getSids().add(surveyId);

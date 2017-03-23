@@ -170,6 +170,9 @@ public final class DataModelUtil {
     /** The internal (result) column name for role name. */
     public static final String INT_COLUMN_NAME_ROLE_NAME = "roleName";
     
+    /** The internal (result) column_name for assessor ids. */
+    public static final String INT_COLUMN_NAME_ASSESSOR_ID = "intAssessorId";
+    
     /**
      * Constructor.
      */
@@ -212,6 +215,7 @@ public final class DataModelUtil {
         sb.append(TABLE_NAME_ENTITY + "." + COLUMN_NAME_ENTITY_NAME + ", ");
         sb.append(TABLE_NAME_ENTITY + "." + COLUMN_NAME_ENTITY_DESCRIPTION + ", ");
         sb.append(TABLE_NAME_USER + "." + COLUMN_NAME_USER_PRINCIPAL_ID + ", ");
+        sb.append(TABLE_NAME_ASSESSOR + "." + COLUMN_NAME_ASSESSOR_ID + " AS " + INT_COLUMN_NAME_ASSESSOR_ID + ", ");
         sb.append(TABLE_NAME_ASSESSOR + "." + COLUMN_NAME_ASSESSOR_VALUE + ", ");
         sb.append(TABLE_NAME_ASSESSOR_TYPE + "." + COLUMN_NAME_ASSESSOR_TYPE_TYPE + ", ");
         sb.append(TABLE_NAME_ENTITY_SURVEY + "." + COLUMN_NAME_ENTITY_SURVEY_SURVEY_ID);
@@ -231,6 +235,10 @@ public final class DataModelUtil {
         return sb.toString();
     }
     
+    /**
+     * Builds an SQL query clause for fetching all assessors from the database.
+     * @return The SQL query clause.
+     */
     public static String buildAssessorsQuery() {
         final StringBuilder sb = new StringBuilder("SELECT ");
         sb.append(TABLE_NAME_ASSESSOR + ".id, ");

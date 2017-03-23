@@ -28,9 +28,9 @@
 
 package org.geant.sat.api.dto;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -51,7 +51,7 @@ public class EntityDetails {
     private String creator;
     
     /** The assessors configured to this entity. */
-    private Map<String, AssessorDetails> assessors = new HashMap<>();
+    private List<AssessorDetails> assessors = new ArrayList<>();
     
     /** The survey identifiers configured to this entity. */
     private Set<String> sids = new HashSet<>();
@@ -124,7 +124,7 @@ public class EntityDetails {
      * Get the assessors configured to this entity.
      * @return The assessors configured to this entity.
      */
-    public Map<String, AssessorDetails> getAssessors() {
+    public List<AssessorDetails> getAssessors() {
         return assessors;
     }
 
@@ -132,7 +132,7 @@ public class EntityDetails {
      * Set the assessors configured to this entity.
      * @param newAssessors What to set.
      */
-    public void setAssessors(Map<String, AssessorDetails> newAssessors) {
+    public void setAssessors(List<AssessorDetails> newAssessors) {
         this.assessors = newAssessors;
     }
 

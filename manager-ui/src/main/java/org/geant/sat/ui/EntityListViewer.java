@@ -119,10 +119,6 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
      *            representing the click.
      */
     private void handleEvent(ItemClick<EntityDetails> event) {
-        if (!event.getMouseEventDetails().isDoubleClick()) {
-            // not a double click
-            return;
-        }
         EntityDetails details = event.getItem();
         if (event.getColumn().getId() == null) {
             // not a editable column

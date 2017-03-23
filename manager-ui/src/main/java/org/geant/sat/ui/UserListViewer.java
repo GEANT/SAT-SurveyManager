@@ -113,7 +113,7 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
     private List<UserDetails> getUserDetails() {
         List<UserDetails> details = new ArrayList<UserDetails>();
         ListUsersResponse resp = getMainUI().getSatApiClient().getUsers();
-        if (!indicateSuccess(resp)) {
+        if (!verifySuccess(resp)) {
             return details;
         }
         List<UserDetails> satDetails = resp.getUsers();
@@ -153,7 +153,7 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
                 LOG.debug("Adding role " + getMainUI().getRole().getAssessmentCoordinatorRoleName());
                 details.getRoles().add(getMainUI().getRole().getAssessmentCoordinatorRoleName());
             }
-            indicateSuccess(getMainUI().getSatApiClient().updateUser(details));
+            verifySuccess(getMainUI().getSatApiClient().updateUser(details));
             users.setItems(getUserDetails());
             break;
         case COLUMN_SO:

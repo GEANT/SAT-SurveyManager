@@ -31,10 +31,12 @@ package org.geant.sat.ui;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
+import org.geant.sat.api.dto.ListAssessorsResponse;
 import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.UserDetails;
 import org.slf4j.Logger;
@@ -139,10 +141,6 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         Window subWindowNewEntity = new Window(getString("lang.window.newentity.editsids.title"));
         subWindowNewEntity.setModal(true);
         VerticalLayout subContent = new VerticalLayout();
-        // form a list of surveys as name/sid strings
-        // preselect the surveys that exist already//
-        // getMainUI().getSatApiClient().getSurveys().
-        // selectSids.setI
         TwinColSelect<String> selectSids = new TwinColSelect<>(getString("lang.window.newentity.editsids.sids"));
         selectSids.setData(details);
         ListAllSurveysResponse resp = getMainUI().getSatApiClient().getSurveys();
@@ -204,7 +202,67 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
     }
 
     private void editAssessors(EntityDetails details) {
-        Notification.show("editAssessors");
+        Window subWindowNewEntity = new Window(getString("lang.window.newentity.editassessors.title"));
+        subWindowNewEntity.setWidth("80%");
+        subWindowNewEntity.setModal(true);
+        VerticalLayout subContent = new VerticalLayout();
+        subContent.setWidth("100%");
+        TwinColSelect<String> selectAssessors = new TwinColSelect<>(
+                getString("lang.window.newentity.editassessors.assessors"));
+        selectAssessors.setWidth("100%");
+        selectAssessors.setData(details);
+        ListAssessorsResponse resp = getMainUI().getSatApiClient().getAssessors();
+        if (!indicateSuccess(resp)) {
+            return;
+        }
+        List<AssessorDetails> assessorDetails = resp.getAssessors();
+        List<String> assessors = new ArrayList<String>();
+        for (AssessorDetails assessorDetail : assessorDetails) {
+            assessors.add(assessorDetail.getId() + ":" + assessorDetail.getValue());
+        }
+        selectAssessors.setItems(assessors);
+        // set current sids as selection
+        Set<String> currentAssessors = new HashSet<String>();
+        for (AssessorDetails assessorDetail : details.getAssessors()) {
+            currentAssessors.add(assessorDetail.getId() + ":" + assessorDetail.getValue());
+        }
+        selectAssessors.updateSelection(currentAssessors, new HashSet<String>());
+        subContent.addComponent(selectAssessors, 0);
+        Button editButton = new Button(getString("lang.window.newentity.buttonModify"));
+        subContent.addComponent(editButton, 1);
+        editButton.addClickListener(this::editAssessors);
+        Button cancelButton = new Button(getString("lang.window.newentity.buttonCancel"));
+        subContent.addComponent(cancelButton, 2);
+        cancelButton.addClickListener(this::canceledEditAssessors);
+        subWindowNewEntity.setContent(subContent);
+        getMainUI().addWindow(subWindowNewEntity);
+    }
+
+    /**
+     * Edits the list of surveys of a entity.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void editAssessors(ClickEvent event) {
+        @SuppressWarnings("unchecked")
+        TwinColSelect<String> select = ((TwinColSelect<String>) ((VerticalLayout) event.getButton().getParent())
+                .getComponent(0));
+        @SuppressWarnings("unused")
+        EntityDetails details = (EntityDetails) select.getData();
+        LOG.debug("Selected items " + select.getSelectedItems());
+        entities.setItems(getFilteredEntityDetails());
+        ((Window) event.getButton().getParent().getParent()).close();
+    }
+
+    /**
+     * Closes edit surveys window.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void canceledEditAssessors(ClickEvent event) {
+        ((Window) event.getButton().getParent().getParent()).close();
     }
 
     /**

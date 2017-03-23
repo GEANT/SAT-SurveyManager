@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
 import org.geant.sat.api.dto.SurveyDetails;
@@ -296,14 +297,14 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
      * @return assessors
      */
     private String getAssessors(EntityDetails details) {
-        String attributes = "";
+        String assessors = "";
         if (details == null || details.getAssessors() == null) {
-            return attributes;
+            return assessors;
         }
-        for (String key : details.getAssessors().keySet()) {
-            attributes += key + "=" + details.getAssessors().get(key) + " ";
+        for (AssessorDetails assDetails : details.getAssessors()) {
+            assessors += assDetails.getType() + ":" + assDetails.getValue();
         }
-        return attributes;
+        return assessors;
     }
 
     /**

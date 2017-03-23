@@ -133,7 +133,10 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
         final Object[] params = new Object[] { name, description, userId };
         int[] types = new int[] { Types.VARCHAR, Types.VARCHAR, Types.BIGINT };
         int rowId = jdbcTemplate.update(update, params, types);
-        //TODO: check rowId
+        if (rowId < 0) {
+            log.error("Obtained rowId {} after the SQL operation", rowId);
+            throw new SurveySystemConnectorException("Unexpected response from the database");
+        }
         final String query = DataModelUtil.buildEntitiesQuery() + " AND " + DataModelUtil.TABLE_NAME_ENTITY + "." 
                 + DataModelUtil.COLUMN_NAME_ENTITY_ID + "=" + getEntityId(name, userId);
         log.trace("Built query {}", query);
@@ -200,7 +203,10 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
         final Object[] params = new Object[] { typeId, value, description };
         int[] types = new int[] { Types.BIGINT, Types.VARCHAR, Types.VARCHAR };
         int rowId = jdbcTemplate.update(update, params, types);
-        //TODO: check rowId
+        if (rowId < 0) {
+            log.error("Obtained rowId {} after the SQL operation", rowId);
+            throw new SurveySystemConnectorException("Unexpected response from the database");
+        }
         final String query = DataModelUtil.buildEntitiesQuery() + " AND " + DataModelUtil.TABLE_NAME_ENTITY + "." 
                 + DataModelUtil.COLUMN_NAME_ASSESSOR_ID + "=" + getAssessorId(value, typeId);
         log.trace("Built query {}", query);
@@ -276,7 +282,10 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                 int[] types = new int[] { Types.BIGINT, Types.BIGINT, Types.VARCHAR };
                 // TODO: should update, not always insert
                 int rowId = jdbcTemplate.update(update, params, types);
-                // TODO: check if success
+                if (rowId < 0) {
+                    log.error("Obtained rowId {} after the SQL operation", rowId);
+                    throw new SurveySystemConnectorException("Unexpected response from the database");
+                }
             }
         }
         final Set<String> roles = details.getRoles();

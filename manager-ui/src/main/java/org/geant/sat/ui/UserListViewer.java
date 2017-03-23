@@ -85,7 +85,6 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
         Column<UserDetails, String> column = users.addColumn(userdetail -> isAdmin(userdetail), new HtmlRenderer())
                 .setCaption(getString("lang.users.column.roles.admin"));
         column.setId(COLUMN_ADMIN);
-        column.setStyleGenerator(userdetail -> "disabled");
         column = users.addColumn(userdetail -> isAssessmentCoordinator(userdetail), new HtmlRenderer()).setCaption(
                 getString("lang.users.column.roles.assessmentcoordinator"));
         column.setId(COLUMN_AC);
@@ -93,7 +92,6 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
         column = users.addColumn(userdetail -> isSurveyOwner(userdetail), new HtmlRenderer()).setCaption(
                 getString("lang.users.column.roles.surveyowner"));
         column.setId(COLUMN_SO);
-        column.setStyleGenerator(userdetail -> "disabled");
         column = users.addColumn(userdetail -> getRoles(userdetail)).setCaption(getString("lang.users.column.roles"));
         column.setHidable(true);
         column.setHidden(true);

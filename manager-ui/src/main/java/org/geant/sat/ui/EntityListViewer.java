@@ -98,11 +98,13 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             column.setId(COLUMN_SIDS);
             column.setHidable(true);
             column.setHidden(true);
+            column.setStyleGenerator(entitydetail -> "active");
             column = entities.addColumn(entitydetail -> getAssessors(entitydetail)).setCaption(
                     getString("lang.entities.column.assesors"));
             column.setId(COLUMN_ASSESSORS);
             column.setHidable(true);
             column.setHidden(true);
+            column.setStyleGenerator(entitydetail -> "active");
             entities.addItemClickListener(event -> handleEvent(event));
             entities.setHeightByRows(details.size() > 0 ? details.size() : 1);
         } else {
@@ -190,6 +192,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         details.getSids().addAll(select.getSelectedItems());
         LOG.debug("New set of surveys " + details.getSids());
         // TODO: update
+        // getMainUI().getSatApiClient().up
         entities.setItems(getFilteredEntityDetails());
         ((Window) event.getButton().getParent().getParent()).close();
     }

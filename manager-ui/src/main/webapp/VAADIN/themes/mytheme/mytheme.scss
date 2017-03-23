@@ -1,6 +1,10 @@
 // If you edit this file you need to compile the theme. See README.md for details.
 // Affects the color of some component elements, e.g Button, Panel title, etc
-$v-background-color: hsl(151, 96%, 97%);
+$v-background-color: hsl(180, 96%, 91%);
+//$v-grid-cell-focused-border: $v-grid-border;
+//$v-grid-row-focused-background-color: $v-grid-row-background-color;
+//$v-grid-row-selected-background-color: $v-grid-row-background-color;
+
 // Affects the color of content areas, e.g  Panel and Window content, TextField input etc
 //$v-app-background-color: hsl(139, 96%, 96%);
 
@@ -15,9 +19,12 @@ $v-background-color: hsl(151, 96%, 97%);
 
   .v-grid-cell.disabled {
     color: grey;
+    cursor: default;
   }
   
   .v-grid-cell.active {
     color: blue;
+    cursor: pointer;
   }
+  
 }

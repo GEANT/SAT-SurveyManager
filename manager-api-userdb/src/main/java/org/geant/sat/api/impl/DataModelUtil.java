@@ -236,6 +236,15 @@ public final class DataModelUtil {
     }
     
     /**
+     * Builds an SQL query clause for fetching entity details from the database.
+     * @param id The entity id whose details are to be fetched.
+     * @return The SQL query clause.
+     */
+    public static String buildEntitiesViaIdQuery(final String id) {
+        return buildEntitiesQuery() + " AND " + TABLE_NAME_ENTITY + "." + COLUMN_NAME_ENTITY_ID + "=" + id;
+    }
+    
+    /**
      * Builds an SQL query clause for fetching all assessors from the database.
      * @return The SQL query clause.
      */
@@ -250,6 +259,15 @@ public final class DataModelUtil {
         sb.append(" AND " + TABLE_NAME_ASSESSOR_TYPE + "." + COLUMN_NAME_END + " IS NULL");
         sb.append(" WHERE " + TABLE_NAME_ASSESSOR + "." + COLUMN_NAME_END + " IS NULL");
         return sb.toString();
+    }
+    
+    /**
+     * Builds an SQL query clause for fetching assessor details from the database.
+     * @param id The assessor id whose details are to be fetched.
+     * @return The SQL query clause.
+     */
+    public static String buildAssessorsViaIdQuery(final String id) {
+        return buildEntitiesQuery() + " AND " + TABLE_NAME_ASSESSOR + ".id=" + id;
     }
 
     /**

@@ -143,6 +143,43 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
     
     /** {@inheritDoc} */
     @Override
+    public synchronized void updateEntityDetails(final EntityDetails entity) throws SurveySystemConnectorException {
+        log.debug("Updating an existing entity with id {}", entity.getId());
+        final EntityDetails storedDetails = getStoredEntityDetails(entity.getId());
+        if (storedDetails == null) {
+            throw new SurveySystemConnectorException("Could not find existing entity with id " + entity.getId());
+        }
+        //TODO: implementation
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public synchronized void updateAssessorDetails(final AssessorDetails assessor) 
+            throws SurveySystemConnectorException {
+        final String id = assessor.getId();
+        log.debug("Updating an existing assessor with id {}", id);
+        final AssessorDetails storedDetails = getStoredAssessorDetails(id);
+        if (storedDetails == null) {
+            throw new SurveySystemConnectorException("Could not find existing assessor with id " + id);
+        }
+        if (!assessor.getValue().equals(storedDetails.getValue()) 
+                || !assessor.getDescription().equals(storedDetails.getDescription())) {
+            final String update = "UPDATE " + DataModelUtil.TABLE_NAME_ASSESSOR + " SET "
+                    + DataModelUtil.COLUMN_NAME_ASSESSOR_VALUE + "=?, " 
+                    + DataModelUtil.COLUMN_NAME_ASSESSOR_DESCRIPTION + "=? WHERE " 
+                    + DataModelUtil.COLUMN_NAME_ASSESSOR_ID + "=?";
+            final Object[] params = new Object[] { assessor.getValue(), assessor.getDescription(), id };
+            int[] types = new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR };
+            int rowId = jdbcTemplate.update(update, params, types);
+            if (rowId < 1) {
+                log.error("Could not update assessor details for {} with clause {}", id, update);
+                throw new SurveySystemConnectorException("Could not update assessor details for " + id);
+            }
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public AssessorDetails createNewAssessor(final String type, final String value, final String description)
             throws SurveySystemConnectorException {
         log.debug("Creating a new assessor type {} with value {}", type, value);
@@ -375,6 +412,38 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                 + DataModelUtil.COLUMN_NAME_END + " IS NULL";
         log.trace("Created a query {}", query);
         return jdbcTemplate.query(query, new IdExtractor(DataModelUtil.COLUMN_NAME_ENTITY_ID));
+    }
+
+    /**
+     * Get the entity details from the database.
+     * @param id The database ID for the entity details.
+     * @return The entity details, or null if it couldn't be fetched.
+     */
+    protected EntityDetails getStoredEntityDetails(final String id) {
+        final String query = DataModelUtil.buildEntitiesViaIdQuery(id);
+        log.trace("Created a query {}", query);
+        final ListEntitiesResponse response = jdbcTemplate.query(query, new EntityDetailsExtractor());
+        if (response.getErrorMessage() != null || response.getEntities().isEmpty()) {
+            log.error("Unexpected response or the entity query {}", query);
+            return null;
+        }
+        return response.getEntities().get(0);
+    }
+    
+    /**
+     * Get the assessor details from the database.
+     * @param id The database ID for the entity details.
+     * @return The entity details, or null if it couldn't be fetched.
+     */
+    protected AssessorDetails getStoredAssessorDetails(final String id) {
+        final String query = DataModelUtil.buildAssessorsViaIdQuery(id);
+        log.trace("Created a query {}", query);
+        final ListAssessorsResponse response = jdbcTemplate.query(query, new AssessorDetailsExtractor());
+        if (response.getErrorMessage() != null || response.getAssessors().isEmpty()) {
+            log.error("Unexpected response or the assessor query {}", query);
+            return null;
+        }
+        return response.getAssessors().get(0);
     }
 
     /**

@@ -97,6 +97,20 @@ public interface UserDatabaseConnector {
      */
     public EntityDetails createNewEntity(final String name, final String description, final String creator)
             throws SurveySystemConnectorException;
+    
+    /**
+     * Updates an existing entity with the given details.
+     * @param entity The entity details.
+     * @throws SurveySystemConnectorException If the operation fails.
+     */
+    public void updateEntityDetails(final EntityDetails entity) throws SurveySystemConnectorException;
+
+    /**
+     * Updates an existing assessor with the given details.
+     * @param entity The assessor details.
+     * @throws SurveySystemConnectorException If the operation fails.
+     */
+    public void updateAssessorDetails(final AssessorDetails assessor) throws SurveySystemConnectorException;
 
     /**
      * List all the assessors in the database.

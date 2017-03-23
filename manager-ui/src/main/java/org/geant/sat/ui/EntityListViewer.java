@@ -95,7 +95,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             entities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
             entities.addColumn(EntityDetails::getDescription).setCaption(getString("lang.entities.column.description"));
             entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"));
-            Column<EntityDetails, String> column = entities.addColumn(entitydetail -> getSids(entitydetail))
+            Column<EntityDetails, String> column = entities.addColumn(entitydetail -> getSurveys(entitydetail))
                     .setCaption(getString("lang.entities.column.sid"));
             column.setId(COLUMN_SIDS);
             column.setHidable(true);
@@ -128,7 +128,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         }
         switch (event.getColumn().getId()) {
         case COLUMN_SIDS:
-            editSids(details);
+            editSurveys(details);
             break;
         case COLUMN_ASSESSORS:
             editAssessors(details);
@@ -137,14 +137,14 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         }
     }
 
-    private void editSids(EntityDetails details) {
+    private void editSurveys(EntityDetails details) {
         Window subWindowNewEntity = new Window(getString("lang.window.newentity.editsids.title"));
         subWindowNewEntity.setModal(true);
         VerticalLayout subContent = new VerticalLayout();
         TwinColSelect<String> selectSids = new TwinColSelect<>(getString("lang.window.newentity.editsids.sids"));
         selectSids.setData(details);
         ListAllSurveysResponse resp = getMainUI().getSatApiClient().getSurveys();
-        if (!indicateSuccess(resp)) {
+        if (!verifySuccess(resp)) {
             return;
         }
         List<SurveyDetails> surveyDetails = resp.getSurveys();
@@ -161,7 +161,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         subContent.addComponent(selectSids, 0);
         Button editButton = new Button(getString("lang.window.newentity.buttonModify"));
         subContent.addComponent(editButton, 1);
-        editButton.addClickListener(this::editSurveys);
+        editButton.addClickListener(this::editedSurveys);
         Button cancelButton = new Button(getString("lang.window.newentity.buttonCancel"));
         subContent.addComponent(cancelButton, 2);
         cancelButton.addClickListener(this::canceledEditSurveys);
@@ -176,7 +176,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
      * @param event
      *            button click event.
      */
-    private void editSurveys(ClickEvent event) {
+    private void editedSurveys(ClickEvent event) {
         @SuppressWarnings("unchecked")
         TwinColSelect<String> select = ((TwinColSelect<String>) ((VerticalLayout) event.getButton().getParent())
                 .getComponent(0));
@@ -185,8 +185,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         details.getSids().clear();
         details.getSids().addAll(select.getSelectedItems());
         LOG.debug("New set of surveys " + details.getSids());
-        // TODO: update
-        // getMainUI().getSatApiClient().up
+        verifySuccess(getMainUI().getSatApiClient().updateEntity(details));
         entities.setItems(getFilteredEntityDetails());
         ((Window) event.getButton().getParent().getParent()).close();
     }
@@ -212,7 +211,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         selectAssessors.setWidth("100%");
         selectAssessors.setData(details);
         ListAssessorsResponse resp = getMainUI().getSatApiClient().getAssessors();
-        if (!indicateSuccess(resp)) {
+        if (!verifySuccess(resp)) {
             return;
         }
         List<AssessorDetails> assessorDetails = resp.getAssessors();
@@ -230,7 +229,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         subContent.addComponent(selectAssessors, 0);
         Button editButton = new Button(getString("lang.window.newentity.buttonModify"));
         subContent.addComponent(editButton, 1);
-        editButton.addClickListener(this::editAssessors);
+        editButton.addClickListener(this::editedAssessors);
         Button cancelButton = new Button(getString("lang.window.newentity.buttonCancel"));
         subContent.addComponent(cancelButton, 2);
         cancelButton.addClickListener(this::canceledEditAssessors);
@@ -244,14 +243,27 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
      * @param event
      *            button click event.
      */
-    private void editAssessors(ClickEvent event) {
+    private void editedAssessors(ClickEvent event) {
         @SuppressWarnings("unchecked")
         TwinColSelect<String> select = ((TwinColSelect<String>) ((VerticalLayout) event.getButton().getParent())
                 .getComponent(0));
-        @SuppressWarnings("unused")
         EntityDetails details = (EntityDetails) select.getData();
         LOG.debug("Selected items " + select.getSelectedItems());
-        entities.setItems(getFilteredEntityDetails());
+        ListAssessorsResponse resp = getMainUI().getSatApiClient().getAssessors();
+        if (!verifySuccess(resp)) {
+            return;
+        }
+        List<AssessorDetails> assessorDetails = resp.getAssessors();
+        details.getAssessors().clear();
+        for (String item : select.getSelectedItems()) {
+            String assessorId = item.split(":")[0];
+            for (AssessorDetails detail : assessorDetails) {
+                if (detail.getId().equals(assessorId)) {
+                    details.getAssessors().add(detail);
+                }
+            }
+        }
+        verifySuccess(getMainUI().getSatApiClient().updateEntity(details));
         ((Window) event.getButton().getParent().getParent()).close();
     }
 
@@ -312,7 +324,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
                     getString("lang.notification.entityrequirements"), Notification.Type.WARNING_MESSAGE);
             return;
         }
-        indicateSuccess(getMainUI().getSatApiClient().createEntity(name, description,
+        verifySuccess(getMainUI().getSatApiClient().createEntity(name, description,
                 getMainUI().getUser().getDetails().getPrincipalId()));
         ((Window) event.getButton().getParent().getParent()).close();
         entities.setItems(getFilteredEntityDetails());
@@ -335,7 +347,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
      *            of the entity
      * @return surveys
      */
-    private String getSids(EntityDetails details) {
+    private String getSurveys(EntityDetails details) {
         String sids = "";
         if (details == null || details.getSids() == null) {
             return sids;

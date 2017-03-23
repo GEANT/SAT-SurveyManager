@@ -240,7 +240,7 @@ public class RestController {
     @RequestMapping(value = "/assessors", method = RequestMethod.GET)
     public @ResponseBody ResponseEntity<ListAssessorsResponse> listAssessors(HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
-        log.debug("Starting /entities endpoint");
+        log.debug("Starting /assessors endpoint");
         final ListAssessorsResponse response = userDbConnector.listAssessors();
         if (response.getErrorMessage() != null) {
             return new ResponseEntity<ListAssessorsResponse>(response, HttpStatus.BAD_GATEWAY);
@@ -530,6 +530,48 @@ public class RestController {
             return new ResponseEntity<AssessorResponse>(response, HttpStatus.BAD_GATEWAY);
         }
         return new ResponseEntity<AssessorResponse>(response, HttpStatus.OK);
+    }
+
+    /**
+     * Updates an existing assessor. An error is returned if the assessor does not exist.
+     * @param id The id of the assessor.
+     * @param body The details of the assessor.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return The details for the updated assessor.
+     */
+    @RequestMapping(headers = {
+            "content-type=application/json" }, value = "/assessors/{id}", method = RequestMethod.PUT)
+    public @ResponseBody ResponseEntity<AssessorResponse> updateAssessor(@PathVariable String id,
+            @RequestBody AssessorDetails body, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        log.debug("Starting /assessors PUT endpoint with id={}", id);
+        final AssessorResponse response = new AssessorResponse();
+        final AssessorDetails details = body;
+        if (!id.equals(details.getId())) {
+            log.error("Given id {} doesn't match with the one in assessor details {}", id, details.getId());
+            response.setErrorMessage("Given id doesn't match with the one in assessor details");
+            return new ResponseEntity<AssessorResponse>(response, HttpStatus.BAD_REQUEST);
+        }
+        final ListAssessorsResponse assessorsResponse;
+        try {
+            userDbConnector.updateAssessorDetails(details);
+            assessorsResponse = userDbConnector.listAssessors();
+        } catch (SurveySystemConnectorException e) {
+            response.setErrorMessage(e.getMessage());
+            return new ResponseEntity<AssessorResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        if (assessorsResponse.getErrorMessage() != null) {
+            response.setErrorMessage(assessorsResponse.getErrorMessage());
+            return new ResponseEntity<AssessorResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        for (AssessorDetails assessor : assessorsResponse.getAssessors()) {
+            if (id.equals(assessor.getId())) {
+                response.setEntity(assessor);
+                return new ResponseEntity<AssessorResponse>(response, HttpStatus.OK);
+            }
+        }
+        response.setErrorMessage("Could not fetch the status of the assessor after update");
+        return new ResponseEntity<AssessorResponse>(response, HttpStatus.BAD_GATEWAY);
     }
 
     

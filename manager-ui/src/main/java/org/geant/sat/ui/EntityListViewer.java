@@ -259,6 +259,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             String assessorId = item.split(":")[0];
             for (AssessorDetails detail : assessorDetails) {
                 if (detail.getId().equals(assessorId)) {
+                    LOG.debug("Adding assessor "+ detail.getId());
                     details.getAssessors().add(detail);
                 }
             }

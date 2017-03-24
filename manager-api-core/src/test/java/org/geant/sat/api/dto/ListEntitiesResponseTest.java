@@ -38,43 +38,43 @@ import org.testng.annotations.Test;
 import com.google.gson.Gson;
 
 /**
- * Unit tests for {@link ListRolesResponse}.
+ * Unit tests for {@link ListEntitiesResponse}.
  */
-public class ListRolesResponseTest extends RoleResponseTest {
+public class ListEntitiesResponseTest extends EntityResponseTest {
     
-    ListRolesResponse response;
-    
+    private ListEntitiesResponse response;
+
     @BeforeMethod
     public void initTests() {
-        response = new ListRolesResponse();
+        response = new ListEntitiesResponse();
         initVariables();
     }
     
     @Test
     public void testInitialized() {
-        Assert.assertNotNull(response.getRoles());
+        Assert.assertNotNull(response.getEntities());
+        Assert.assertTrue(response.getEntities().isEmpty());
         Assert.assertNull(response.getErrorMessage());
-        Assert.assertTrue(response.getRoles().isEmpty());
     }
     
     @Test
     public void testError() {
-        super.testError(ListRolesResponse.class);
+        super.testError(ListEntitiesResponse.class);
     }
     
     @Test
     public void testWithDetails() {
-        final RoleDetails details = initializeDetails();
-        final List<RoleDetails> roles = new ArrayList<>();
-        roles.add(details);
-        response.setRoles(roles);
-        final Gson gson = new Gson();
+        final EntityDetails details = initializeDetails();
+        final List<EntityDetails> entities = new ArrayList<>();
+        entities.add(details);
+        response.setEntities(entities);
+        Gson gson = new Gson();
         final String encoded = gson.toJson(response);
-        final ListRolesResponse decodedResponse = gson.fromJson(encoded, ListRolesResponse.class);
-        Assert.assertNull(decodedResponse.getErrorMessage());
-        Assert.assertNotNull(decodedResponse.getRoles());
-        Assert.assertEquals(decodedResponse.getRoles().size(), 1);
-        assertDetails(decodedResponse.getRoles().get(0));
+        final ListEntitiesResponse decoded = gson.fromJson(encoded, ListEntitiesResponse.class);
+        Assert.assertNotNull(decoded.getEntities());
+        Assert.assertFalse(decoded.getEntities().isEmpty());
+        Assert.assertEquals(decoded.getEntities().size(), 1);
+        Assert.assertNull(decoded.getErrorMessage());
+        assertDetails(decoded.getEntities().get(0));
     }
-
 }

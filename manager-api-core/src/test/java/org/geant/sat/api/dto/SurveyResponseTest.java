@@ -28,9 +28,6 @@
 
 package org.geant.sat.api.dto;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -38,43 +35,69 @@ import org.testng.annotations.Test;
 import com.google.gson.Gson;
 
 /**
- * Unit tests for {@link ListRolesResponse}.
+ * Unit tests for {@link SurveyResponse}.
  */
-public class ListRolesResponseTest extends RoleResponseTest {
+public class SurveyResponseTest extends AbstractConnectorResponseTest {
+
+    SurveyResponse response;
     
-    ListRolesResponse response;
+    String sid;
+    
+    String title;
+    
+    String owner;
+    
+    boolean active;
     
     @BeforeMethod
     public void initTests() {
-        response = new ListRolesResponse();
+        response = new SurveyResponse();
         initVariables();
+    }
+    
+    public void initVariables() {
+        sid = "mockSid";
+        title = "mockTitle";
+        owner = "mockOwner";
+        active = true;
     }
     
     @Test
     public void testInitialized() {
-        Assert.assertNotNull(response.getRoles());
+        Assert.assertNull(response.getSurvey());
         Assert.assertNull(response.getErrorMessage());
-        Assert.assertTrue(response.getRoles().isEmpty());
     }
     
     @Test
     public void testError() {
-        super.testError(ListRolesResponse.class);
+        super.testError(ListAllSurveysResponse.class);
     }
     
     @Test
     public void testWithDetails() {
-        final RoleDetails details = initializeDetails();
-        final List<RoleDetails> roles = new ArrayList<>();
-        roles.add(details);
-        response.setRoles(roles);
-        final Gson gson = new Gson();
+        final SurveyDetails details = initializeDetails();
+        response.setSurvey(details);
+        Gson gson = new Gson();
         final String encoded = gson.toJson(response);
-        final ListRolesResponse decodedResponse = gson.fromJson(encoded, ListRolesResponse.class);
+        final SurveyResponse decodedResponse = gson.fromJson(encoded, SurveyResponse.class);
         Assert.assertNull(decodedResponse.getErrorMessage());
-        Assert.assertNotNull(decodedResponse.getRoles());
-        Assert.assertEquals(decodedResponse.getRoles().size(), 1);
-        assertDetails(decodedResponse.getRoles().get(0));
+        Assert.assertNotNull(decodedResponse.getSurvey());
+        assertDetails(decodedResponse.getSurvey());
     }
 
+    public SurveyDetails initializeDetails() {
+        final SurveyDetails details = new SurveyDetails();
+        details.setSid(sid);
+        details.setOwner(owner);
+        details.setTitle(title);
+        details.setActive(active);
+        return details;
+    }
+    
+    public void assertDetails(final SurveyDetails details) {
+        Assert.assertEquals(details.getSid(), sid);
+        Assert.assertEquals(details.getTitle(), title);
+        Assert.assertEquals(details.getOwner(), owner);
+        Assert.assertEquals(details.getActive(), active);        
+    }
 }

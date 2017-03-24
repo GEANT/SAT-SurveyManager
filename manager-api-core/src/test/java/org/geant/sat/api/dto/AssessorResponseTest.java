@@ -28,9 +28,6 @@
 
 package org.geant.sat.api.dto;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -38,43 +35,73 @@ import org.testng.annotations.Test;
 import com.google.gson.Gson;
 
 /**
- * Unit tests for {@link ListRolesResponse}.
+ * Unit tests for {@link AssessorResponse}.
  */
-public class ListRolesResponseTest extends RoleResponseTest {
+public class AssessorResponseTest extends AbstractConnectorResponseTest {
     
-    ListRolesResponse response;
+    AssessorResponse response;
+    
+    String id;
+    
+    String value;
+    
+    String description;
+    
+    String type;
+    
+    String typeDescription;
     
     @BeforeMethod
     public void initTests() {
-        response = new ListRolesResponse();
-        initVariables();
+        response = new AssessorResponse();
+    }
+    
+    public void initVariables() {
+        id = "mockId";
+        value = "mockValue";
+        description = "mockDescription";
+        type = "mockType";
+        typeDescription = "mockTypeDescription";
     }
     
     @Test
     public void testInitialized() {
-        Assert.assertNotNull(response.getRoles());
+        Assert.assertNull(response.getAssessor());
         Assert.assertNull(response.getErrorMessage());
-        Assert.assertTrue(response.getRoles().isEmpty());
     }
     
     @Test
     public void testError() {
-        super.testError(ListRolesResponse.class);
+        super.testError(AssessorResponse.class);
     }
     
     @Test
     public void testWithDetails() {
-        final RoleDetails details = initializeDetails();
-        final List<RoleDetails> roles = new ArrayList<>();
-        roles.add(details);
-        response.setRoles(roles);
-        final Gson gson = new Gson();
+        final AssessorDetails details = initializeDetails();
+        Gson gson = new Gson();
+        response.setAssessor(details);
         final String encoded = gson.toJson(response);
-        final ListRolesResponse decodedResponse = gson.fromJson(encoded, ListRolesResponse.class);
-        Assert.assertNull(decodedResponse.getErrorMessage());
-        Assert.assertNotNull(decodedResponse.getRoles());
-        Assert.assertEquals(decodedResponse.getRoles().size(), 1);
-        assertDetails(decodedResponse.getRoles().get(0));
+        final AssessorResponse decoded = gson.fromJson(encoded, AssessorResponse.class);
+        assertDetails(decoded.getAssessor());
     }
-
+    
+    public AssessorDetails initializeDetails() {
+        initVariables();
+        final AssessorDetails details = new AssessorDetails();
+        details.setDescription(description);
+        details.setId(id);
+        details.setValue(value);
+        details.setType(type);
+        details.setTypeDescription(typeDescription);
+        return details;
+    }
+    
+    public void assertDetails(final AssessorDetails details) {
+        initVariables();
+        Assert.assertEquals(details.getId(), details.getId());
+        Assert.assertEquals(details.getValue(), value);
+        Assert.assertEquals(details.getDescription(), description);
+        Assert.assertEquals(details.getType(), type);
+        Assert.assertEquals(details.getTypeDescription(), typeDescription);        
+    }
 }

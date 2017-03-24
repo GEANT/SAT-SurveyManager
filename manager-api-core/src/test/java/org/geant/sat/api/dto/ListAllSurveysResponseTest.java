@@ -28,6 +28,9 @@
 
 package org.geant.sat.api.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -37,25 +40,14 @@ import com.google.gson.Gson;
 /**
  * Unit tests for {@link ListAllSurveysResponse}.
  */
-public class ListAllSurveysResponseTest extends AbstractConnectorResponseTest {
+public class ListAllSurveysResponseTest extends SurveyResponseTest {
 
     ListAllSurveysResponse response;
-    
-    String sid;
-    
-    String title;
-    
-    String owner;
-    
-    boolean active;
     
     @BeforeMethod
     public void initTests() {
         response = new ListAllSurveysResponse();
-        sid = "mockSid";
-        title = "mockTitle";
-        owner = "mockOwner";
-        active = true;
+        initVariables();
     }
     
     @Test
@@ -72,20 +64,15 @@ public class ListAllSurveysResponseTest extends AbstractConnectorResponseTest {
     
     @Test
     public void testWithDetails() {
-        final SurveyDetails details = new SurveyDetails();
-        details.setSid(sid);
-        details.setOwner(owner);
-        details.setTitle(title);
-        details.setActive(active);
-        response.getSurveys().add(details);
+        final SurveyDetails details = initializeDetails();
+        final List<SurveyDetails> surveys = new ArrayList<>();
+        surveys.add(details);
+        response.setSurveys(surveys);
         Gson gson = new Gson();
         final String encoded = gson.toJson(response);
         final ListAllSurveysResponse decodedResponse = gson.fromJson(encoded, ListAllSurveysResponse.class);
+        Assert.assertNull(decodedResponse.getErrorMessage());
         Assert.assertEquals(decodedResponse.getSurveys().size(), 1);
-        final SurveyDetails decodedDetails = decodedResponse.getSurveys().get(0);
-        Assert.assertEquals(decodedDetails.getSid(), sid);
-        Assert.assertEquals(decodedDetails.getTitle(), title);
-        Assert.assertEquals(decodedDetails.getOwner(), owner);
-        Assert.assertEquals(decodedDetails.getActive(), active);
+        assertDetails(decodedResponse.getSurveys().get(0));
     }
 }

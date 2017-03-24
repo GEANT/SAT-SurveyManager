@@ -28,8 +28,10 @@
 
 package org.geant.sat.api.dto;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -38,43 +40,79 @@ import org.testng.annotations.Test;
 import com.google.gson.Gson;
 
 /**
- * Unit tests for {@link ListRolesResponse}.
+ * Unit tests for {@link UserResponse}.
  */
-public class ListRolesResponseTest extends RoleResponseTest {
+public class UserResponseTest extends AbstractConnectorResponseTest {
+
+    UserResponse response;
     
-    ListRolesResponse response;
+    String principalId;
+
+    String surveyPrincipalId;
+
+    String attributeName;
+    
+    String attributeValue;
+    
+    String role;
     
     @BeforeMethod
     public void initTests() {
-        response = new ListRolesResponse();
-        initVariables();
+        response = new UserResponse();
+    }
+    
+    public void initVariables() {
+        principalId = "mockPrincipalId";
+        surveyPrincipalId = "mockSurveyPrincipalId";
+        attributeName = "attributeName";
+        attributeValue = "attributeValue";
+        role = "mockRole";
     }
     
     @Test
     public void testInitialized() {
-        Assert.assertNotNull(response.getRoles());
+        Assert.assertNull(response.getUser());
         Assert.assertNull(response.getErrorMessage());
-        Assert.assertTrue(response.getRoles().isEmpty());
     }
     
     @Test
     public void testError() {
-        super.testError(ListRolesResponse.class);
+        super.testError(UserResponse.class);
     }
     
     @Test
     public void testWithDetails() {
-        final RoleDetails details = initializeDetails();
-        final List<RoleDetails> roles = new ArrayList<>();
-        roles.add(details);
-        response.setRoles(roles);
-        final Gson gson = new Gson();
+        final UserDetails details = initializeDetails();
+        response.setUser(details);
+        Gson gson = new Gson();
         final String encoded = gson.toJson(response);
-        final ListRolesResponse decodedResponse = gson.fromJson(encoded, ListRolesResponse.class);
+        final UserResponse decodedResponse = gson.fromJson(encoded, UserResponse.class);
         Assert.assertNull(decodedResponse.getErrorMessage());
-        Assert.assertNotNull(decodedResponse.getRoles());
-        Assert.assertEquals(decodedResponse.getRoles().size(), 1);
-        assertDetails(decodedResponse.getRoles().get(0));
+        Assert.assertNotNull(decodedResponse.getUser());
+        assertDetails(decodedResponse.getUser());
     }
 
+    public UserDetails initializeDetails() {
+        initVariables();
+        final UserDetails details = new UserDetails();
+        details.setPrincipalId(principalId);
+        details.setSurveyPrincipalId(surveyPrincipalId);
+        final Map<String, String> attributes = new HashMap<>();
+        attributes.put(attributeName, attributeValue);
+        details.setAttributes(attributes);
+        final Set<String> roles = new HashSet<>();
+        roles.add(role);
+        details.setRoles(roles);
+        return details;
+    }
+    
+    public void assertDetails(final UserDetails details) {
+        initVariables();
+        Assert.assertEquals(details.getPrincipalId(), principalId);
+        Assert.assertEquals(details.getSurveyPrincipalId(), surveyPrincipalId);
+        Assert.assertEquals(details.getAttributes().size(), 1);
+        Assert.assertEquals(details.getAttributes().get(attributeName), attributeValue);
+        Assert.assertEquals(details.getRoles().size(), 1);
+        Assert.assertTrue(details.getRoles().contains(role));
+    }
 }

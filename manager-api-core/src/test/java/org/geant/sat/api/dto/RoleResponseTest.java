@@ -28,9 +28,6 @@
 
 package org.geant.sat.api.dto;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -38,43 +35,58 @@ import org.testng.annotations.Test;
 import com.google.gson.Gson;
 
 /**
- * Unit tests for {@link ListRolesResponse}.
+ * Unit tests for {@link RoleResponse}.
  */
-public class ListRolesResponseTest extends RoleResponseTest {
+public class RoleResponseTest extends AbstractConnectorResponseTest {
     
-    ListRolesResponse response;
+    RoleResponse response;
+    
+    String name;
+    
+    String description;
     
     @BeforeMethod
     public void initTests() {
-        response = new ListRolesResponse();
+        response = new RoleResponse();
         initVariables();
+    }
+    
+    public void initVariables() {
+        name = "mockName";
+        description = "mockDescription";
     }
     
     @Test
     public void testInitialized() {
-        Assert.assertNotNull(response.getRoles());
         Assert.assertNull(response.getErrorMessage());
-        Assert.assertTrue(response.getRoles().isEmpty());
+        Assert.assertNull(response.getRole());
     }
     
     @Test
     public void testError() {
-        super.testError(ListRolesResponse.class);
+        super.testError(RoleResponse.class);
     }
     
     @Test
     public void testWithDetails() {
         final RoleDetails details = initializeDetails();
-        final List<RoleDetails> roles = new ArrayList<>();
-        roles.add(details);
-        response.setRoles(roles);
+        response.setRole(details);
         final Gson gson = new Gson();
         final String encoded = gson.toJson(response);
-        final ListRolesResponse decodedResponse = gson.fromJson(encoded, ListRolesResponse.class);
+        final RoleResponse decodedResponse = gson.fromJson(encoded, RoleResponse.class);
         Assert.assertNull(decodedResponse.getErrorMessage());
-        Assert.assertNotNull(decodedResponse.getRoles());
-        Assert.assertEquals(decodedResponse.getRoles().size(), 1);
-        assertDetails(decodedResponse.getRoles().get(0));
+        assertDetails(decodedResponse.getRole());
     }
 
+    public RoleDetails initializeDetails() {
+        final RoleDetails details = new RoleDetails();
+        details.setName(name);
+        details.setDescription(description);
+        return details;
+    }
+    
+    public void assertDetails(final RoleDetails details) {
+       Assert.assertEquals(details.getName(), name);
+       Assert.assertEquals(details.getDescription(), description);
+    }
 }

@@ -38,43 +38,44 @@ import org.testng.annotations.Test;
 import com.google.gson.Gson;
 
 /**
- * Unit tests for {@link ListRolesResponse}.
+ * Unit tests for {@link ListAssessorsResponse}.
  */
-public class ListRolesResponseTest extends RoleResponseTest {
-    
-    ListRolesResponse response;
+public class ListAssessorsResponseTest extends AssessorResponseTest {
+
+    ListAssessorsResponse response;
     
     @BeforeMethod
     public void initTests() {
-        response = new ListRolesResponse();
+        response = new ListAssessorsResponse();
         initVariables();
     }
     
     @Test
     public void testInitialized() {
-        Assert.assertNotNull(response.getRoles());
+        Assert.assertNotNull(response.getAssessors());
+        Assert.assertTrue(response.getAssessors().isEmpty());
         Assert.assertNull(response.getErrorMessage());
-        Assert.assertTrue(response.getRoles().isEmpty());
     }
     
     @Test
     public void testError() {
-        super.testError(ListRolesResponse.class);
+        super.testError(ListAssessorsResponse.class);
     }
     
     @Test
     public void testWithDetails() {
-        final RoleDetails details = initializeDetails();
-        final List<RoleDetails> roles = new ArrayList<>();
-        roles.add(details);
-        response.setRoles(roles);
-        final Gson gson = new Gson();
+        final AssessorDetails details = initializeDetails();
+        final List<AssessorDetails> assessors = new ArrayList<>();
+        assessors.add(details);
+        response.setAssessors(assessors);
+        Gson gson = new Gson();
         final String encoded = gson.toJson(response);
-        final ListRolesResponse decodedResponse = gson.fromJson(encoded, ListRolesResponse.class);
-        Assert.assertNull(decodedResponse.getErrorMessage());
-        Assert.assertNotNull(decodedResponse.getRoles());
-        Assert.assertEquals(decodedResponse.getRoles().size(), 1);
-        assertDetails(decodedResponse.getRoles().get(0));
+        final ListAssessorsResponse decoded = gson.fromJson(encoded, ListAssessorsResponse.class);
+        Assert.assertNotNull(decoded.getAssessors());
+        Assert.assertFalse(decoded.getAssessors().isEmpty());
+        Assert.assertEquals(decoded.getAssessors().size(), 1);
+        Assert.assertNull(decoded.getErrorMessage());
+        assertDetails(decoded.getAssessors().get(0));
     }
 
 }

@@ -38,43 +38,42 @@ import org.testng.annotations.Test;
 import com.google.gson.Gson;
 
 /**
- * Unit tests for {@link ListRolesResponse}.
+ * Unit tests for {@ListUsersResponse}.
  */
-public class ListRolesResponseTest extends RoleResponseTest {
+public class ListUsersResponseTest extends UserResponseTest {
     
-    ListRolesResponse response;
+    ListUsersResponse response;
     
     @BeforeMethod
     public void initTests() {
-        response = new ListRolesResponse();
+        response = new ListUsersResponse();
         initVariables();
     }
     
     @Test
     public void testInitialized() {
-        Assert.assertNotNull(response.getRoles());
+        Assert.assertNotNull(response.getUsers());
         Assert.assertNull(response.getErrorMessage());
-        Assert.assertTrue(response.getRoles().isEmpty());
+        Assert.assertTrue(response.getUsers().isEmpty());
     }
     
     @Test
     public void testError() {
-        super.testError(ListRolesResponse.class);
+        super.testError(ListUsersResponse.class);
     }
     
     @Test
     public void testWithDetails() {
-        final RoleDetails details = initializeDetails();
-        final List<RoleDetails> roles = new ArrayList<>();
-        roles.add(details);
-        response.setRoles(roles);
+        final UserDetails details = initializeDetails();
+        final List<UserDetails> users = new ArrayList<>();
+        users.add(details);
+        response.setUsers(users);
         final Gson gson = new Gson();
         final String encoded = gson.toJson(response);
-        final ListRolesResponse decodedResponse = gson.fromJson(encoded, ListRolesResponse.class);
+        final ListUsersResponse decodedResponse = gson.fromJson(encoded, ListUsersResponse.class);
         Assert.assertNull(decodedResponse.getErrorMessage());
-        Assert.assertNotNull(decodedResponse.getRoles());
-        Assert.assertEquals(decodedResponse.getRoles().size(), 1);
-        assertDetails(decodedResponse.getRoles().get(0));
+        Assert.assertNotNull(decodedResponse.getUsers());
+        Assert.assertEquals(decodedResponse.getUsers().size(), 1);
+        assertDetails(decodedResponse.getUsers().get(0));
     }
-
 }

@@ -55,6 +55,10 @@ public class AnswersResponseTest extends AbstractConnectorResponseTest {
 	
 	String token;
 	
+	String question;
+	
+	String answer;
+	
 	@BeforeMethod
 	public void initTests() {
 		response = new AnswersResponse();
@@ -63,6 +67,8 @@ public class AnswersResponseTest extends AbstractConnectorResponseTest {
 		submitDate = "" + System.currentTimeMillis();
 		startLanguage = "en";
 		token = "mockToken";
+		question = "mockQuestion";
+		answer = "mockAnswer";
 	}
 	
 	@Test
@@ -79,21 +85,19 @@ public class AnswersResponseTest extends AbstractConnectorResponseTest {
 	
 	@Test
 	public void testWithDetails() {
-		final List<AnswerDetails> details = new ArrayList<>();
-		final AnswerDetails answer = new AnswerDetails();
-		answer.setId(id);
-		answer.setStartDate(startDate);
-		answer.setSubmitDate(submitDate);
-		answer.setStartLanguage(startLanguage);
-		answer.setToken(token);
-		final Map<String, String> answers = new HashMap<>();
-		final String q1 = "q1";
-		final String a1 = "a1";
-		answers.put(q1, a1);
-		answer.setAnswers(answers);
-		details.add(answer);
+		final List<AnswerDetails> answers = new ArrayList<>();
+		final AnswerDetails details = new AnswerDetails();
+		details.setId(id);
+		details.setStartDate(startDate);
+		details.setSubmitDate(submitDate);
+		details.setStartLanguage(startLanguage);
+		details.setToken(token);
+		final Map<String, String> map = new HashMap<>();
+		map.put(question, answer);
+		details.setAnswers(map);
+		answers.add(details);
 		Gson gson = new Gson();
-		response.setAnswers(details);
+		response.setAnswers(answers);
 		final String encoded = gson.toJson(response);
 		final AnswersResponse decoded = gson.fromJson(encoded, AnswersResponse.class);
 		final AnswerDetails decodedDetails = decoded.getAnswers().get(0);
@@ -102,7 +106,7 @@ public class AnswersResponseTest extends AbstractConnectorResponseTest {
 		Assert.assertEquals(decodedDetails.getSubmitDate(), submitDate);
 		Assert.assertEquals(decodedDetails.getStartLanguage(), startLanguage);
 		Assert.assertEquals(decodedDetails.getToken(), token);
-		Assert.assertEquals(decodedDetails.getAnswers().get(q1), a1);
+		Assert.assertEquals(decodedDetails.getAnswers().get(question), answer);
 	}
 
 }

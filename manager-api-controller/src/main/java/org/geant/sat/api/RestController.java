@@ -522,7 +522,7 @@ public class RestController {
         log.debug("Starting /assessors POST endpoint with value={}", value);
         final AssessorResponse response = new AssessorResponse();
         try {
-            final AssessorDetails entity = userDbConnector.createNewAssessor(value, type, description);
+            final AssessorDetails entity = userDbConnector.createNewAssessor(type, value, description);
             response.setAssessor(entity);
         } catch (SurveySystemConnectorException e) {
             log.error("Could not add the assessor to the database", e);

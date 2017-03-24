@@ -523,7 +523,7 @@ public class RestController {
         final AssessorResponse response = new AssessorResponse();
         try {
             final AssessorDetails entity = userDbConnector.createNewAssessor(value, type, description);
-            response.setEntity(entity);
+            response.setAssessor(entity);
         } catch (SurveySystemConnectorException e) {
             log.error("Could not add the assessor to the database", e);
             response.setErrorMessage(e.getMessage());
@@ -566,7 +566,7 @@ public class RestController {
         }
         for (AssessorDetails assessor : assessorsResponse.getAssessors()) {
             if (id.equals(assessor.getId())) {
-                response.setEntity(assessor);
+                response.setAssessor(assessor);
                 return new ResponseEntity<AssessorResponse>(response, HttpStatus.OK);
             }
         }

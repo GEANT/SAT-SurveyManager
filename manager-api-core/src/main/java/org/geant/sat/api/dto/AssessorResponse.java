@@ -40,7 +40,7 @@ public class AssessorResponse extends AbstractConnectorResponse {
      * Set the details for the assessor.
      * @param details What to set.
      */
-    public void setEntity(final AssessorDetails details) {
+    public void setAssessor(final AssessorDetails details) {
         assessor = details;
     }
 
@@ -48,7 +48,7 @@ public class AssessorResponse extends AbstractConnectorResponse {
      * Get the details for the assessor.
      * @return The details for the assessor.
      */
-    public AssessorDetails getEntity() {
+    public AssessorDetails getAssessor() {
         return assessor;
     }
 

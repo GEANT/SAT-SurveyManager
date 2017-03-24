@@ -232,23 +232,24 @@ public class LimeSurveyConnector implements SurveySystemConnector {
             if (questions != null) {
                 response.setErrorMessage(questions.getErrorMessage());
                 final LimeQuestionDetails[] limeDetails = questions.getQuestions();
-                final QuestionDetails[] responseDetails = new QuestionDetails[limeDetails.length];
+                final List<QuestionDetails> responseDetails = new ArrayList<>();
                 for (int i = 0; i < limeDetails.length; i++) {
-                    responseDetails[i] = new QuestionDetails();
+                    final QuestionDetails newDetails = new QuestionDetails();
                     if ("Y".equalsIgnoreCase(limeDetails[i].getMandatory())) {
-                        responseDetails[i].setMandatory(true);
+                        newDetails.setMandatory(true);
                     } else {
-                        responseDetails[i].setMandatory(false);
+                        newDetails.setMandatory(false);
                     }
-                    responseDetails[i].setGid(limeDetails[i].getGid());
-                    responseDetails[i].setQid(limeDetails[i].getQid());
-                    responseDetails[i].setLanguage(limeDetails[i].getLanguage());
-                    responseDetails[i].setParentQid(limeDetails[i].getParentQid());
-                    responseDetails[i].setQuestion(limeDetails[i].getQuestion());
-                    responseDetails[i].setQuestionOrder(limeDetails[i].getQuestionOrder());
-                    responseDetails[i].setSid(sid);
-                    responseDetails[i].setTitle(limeDetails[i].getTitle());
-                    responseDetails[i].setType(limeDetails[i].getType());
+                    newDetails.setGid(limeDetails[i].getGid());
+                    newDetails.setQid(limeDetails[i].getQid());
+                    newDetails.setLanguage(limeDetails[i].getLanguage());
+                    newDetails.setParentQid(limeDetails[i].getParentQid());
+                    newDetails.setQuestion(limeDetails[i].getQuestion());
+                    newDetails.setQuestionOrder(limeDetails[i].getQuestionOrder());
+                    newDetails.setSid(sid);
+                    newDetails.setTitle(limeDetails[i].getTitle());
+                    newDetails.setType(limeDetails[i].getType());
+                    responseDetails.add(newDetails);
                 }
                 response.setQuestions(responseDetails);
             } else {

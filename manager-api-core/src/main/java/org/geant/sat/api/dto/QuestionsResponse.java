@@ -27,19 +27,22 @@
  */
 package org.geant.sat.api.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A response containing question details.
  */
 public class QuestionsResponse extends AbstractConnectorResponse {
 
     /** The details for questions. */
-    private QuestionDetails[] questions;
+    private List<QuestionDetails> questions = new ArrayList<>();
 
     /**
      * Get the details for questions.
      * @return The details for questions.
      */
-    public QuestionDetails[] getQuestions() {
+    public List<QuestionDetails> getQuestions() {
         return questions;
     }
 
@@ -47,7 +50,7 @@ public class QuestionsResponse extends AbstractConnectorResponse {
      * Set the details for questions.
      * @param newQuestions What to set.
      */
-    public void setQuestions(QuestionDetails[] newQuestions) {
+    public void setQuestions(List<QuestionDetails> newQuestions) {
         this.questions = newQuestions;
     }
 }

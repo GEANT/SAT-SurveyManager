@@ -165,7 +165,7 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
      * @return question details if they exist, otherwise null
      */
     @SuppressWarnings("unused")
-    private QuestionDetails[] resolveQuestionDetails(String sid, MainUI ui) {
+    private List<QuestionDetails> resolveQuestionDetails(String sid, MainUI ui) {
         if (sid == null) {
             LOG.debug("questions resolved with null sid");
             return null;

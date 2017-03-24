@@ -255,7 +255,7 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
             log.error("Obtained rowId {} after the SQL operation", rowId);
             throw new SurveySystemConnectorException("Unexpected response from the database");
         }
-        final String query = DataModelUtil.buildEntitiesQuery() + " AND " + DataModelUtil.TABLE_NAME_ENTITY + "." 
+        final String query = DataModelUtil.buildAssessorsQuery() + " AND " + DataModelUtil.TABLE_NAME_ENTITY + "." 
                 + DataModelUtil.COLUMN_NAME_ASSESSOR_ID + "=" + getAssessorId(value, typeId);
         log.trace("Built query {}", query);
         final ListAssessorsResponse response = jdbcTemplate.query(query, new AssessorDetailsExtractor());

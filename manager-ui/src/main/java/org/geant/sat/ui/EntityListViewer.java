@@ -265,6 +265,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             }
         }
         verifySuccess(getMainUI().getSatApiClient().updateEntity(details));
+        entities.setItems(getFilteredEntityDetails());
         ((Window) event.getButton().getParent().getParent()).close();
     }
 

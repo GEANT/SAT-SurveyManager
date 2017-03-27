@@ -27,6 +27,10 @@
  */
 package org.geant.sat.api.impl;
 
+import java.util.List;
+
+import org.geant.sat.api.dto.AssessorDetails;
+
 /**
  * Constants and helpers reflecting the data model.
  */
@@ -282,5 +286,23 @@ public final class DataModelUtil {
         sb.append(TABLE_NAME_ROLE + "." + COLUMN_NAME_ROLE_DESCRIPTION);
         sb.append(" FROM " + TABLE_NAME_ROLE);
         return sb.toString();
+    }
+    
+    /**
+     * Helper method to check whether current id already exists in the list of assessors.
+     * @param assessors The list of assessors.
+     * @param id The id to be checked.
+     * @return True if exists, false otherwise.
+     */
+    public static boolean assessorListContains(final List<AssessorDetails> assessors, final String id) {
+        if (id == null || assessors == null) {
+            return false;
+        }
+        for (final AssessorDetails details : assessors) {
+            if (id.equals(details.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

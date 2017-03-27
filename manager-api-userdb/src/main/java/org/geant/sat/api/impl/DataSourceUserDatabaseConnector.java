@@ -184,7 +184,7 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
     protected void updateEntityAssessors(final String id, final List<AssessorDetails> assessors, 
             final List<AssessorDetails> storedAssessors) throws SurveySystemConnectorException {
         for (final AssessorDetails storedDetails : storedAssessors) {
-            if (!listContains(assessors, storedDetails.getId())) {
+            if (!DataModelUtil.assessorListContains(assessors, storedDetails.getId())) {
                 log.debug("Invalidating assessor ID {} for entity {}", storedDetails.getId(), id);
                 final String update = "UPDATE " + DataModelUtil.TABLE_NAME_ENTITY_ASSESSOR + " SET "
                         + DataModelUtil.COLUMN_NAME_END + "=? WHERE " 
@@ -201,7 +201,7 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
             }
         }
         for (final AssessorDetails details : assessors) {
-            if (!listContains(storedAssessors, details.getId())) {
+            if (!DataModelUtil.assessorListContains(storedAssessors, details.getId())) {
                 log.debug("Adding assessor ID {} for entity {}", details.getId(), id);
                 final String update = "INSERT INTO " + DataModelUtil.TABLE_NAME_ENTITY_ASSESSOR + " ("
                         + DataModelUtil.COLUMN_NAME_ENTITY_ASSESSOR_ENTITY_ID + ", " 
@@ -258,25 +258,6 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
             }
         }
         
-    }
-
-    /**
-     * Helper method to check whether current id already exists in the list of assessors.
-     * @param assessors The list of assessors.
-     * @param id The id to be checked.
-     * @return True if exists, false otherwise.
-     */
-    protected boolean listContains(final List<AssessorDetails> assessors, final String id) {
-        if (id == null || assessors == null) {
-            log.warn("The input is null, assessors: {}, id: {}", assessors == null, id == null);
-            return false;
-        }
-        for (final AssessorDetails details : assessors) {
-            if (id.equals(details.getId())) {
-                return true;
-            }
-        }
-        return false;
     }
     
     /** {@inheritDoc} */

@@ -170,7 +170,63 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
         }
         final Set<String> storedSids = storedDetails.getSids();
         final Set<String> sids = entity.getSids();
-        for (final String sid : storedDetails.getSids()) {
+        updateEntitySids(id, storedSids, sids);
+        updateEntityAssessors(id, entity.getAssessors(), storedDetails.getAssessors());
+    }
+    
+    /**
+     * Updates entity assessor table.
+     * @param id The entity ID.
+     * @param assessors The target list of assessors.
+     * @param storedAssessors The currently stored list of assessors.
+     * @throws SurveySystemConnectorException If the operation fails.
+     */
+    protected void updateEntityAssessors(final String id, final List<AssessorDetails> assessors, 
+            final List<AssessorDetails> storedAssessors) throws SurveySystemConnectorException {
+        for (final AssessorDetails storedDetails : storedAssessors) {
+            if (!listContains(assessors, storedDetails.getId())) {
+                log.debug("Invalidating assessor ID {} for entity {}", storedDetails.getId(), id);
+                final String update = "UPDATE " + DataModelUtil.TABLE_NAME_ENTITY_ASSESSOR + " SET "
+                        + DataModelUtil.COLUMN_NAME_END + "=? WHERE " 
+                        + DataModelUtil.COLUMN_NAME_ENTITY_ASSESSOR_ENTITY_ID + "=? AND " 
+                        + DataModelUtil.COLUMN_NAME_ENTITY_ASSESSOR_ASSESSOR_ID + "=?";
+                final Object[] params = new Object[] { new Timestamp(System.currentTimeMillis()), id, 
+                        storedDetails.getId() };
+                int[] types = new int[] { Types.TIMESTAMP, Types.BIGINT, Types.BIGINT };
+                int rowId = jdbcTemplate.update(update, params, types);
+                if (rowId < 1) {
+                    log.error("Could not update entity assessor details for {} with clause {}", id, update);
+                    throw new SurveySystemConnectorException("Could not update entity assessor details for " + id);
+                }             
+            }
+        }
+        for (final AssessorDetails details : assessors) {
+            if (!listContains(storedAssessors, details.getId())) {
+                log.debug("Adding assessor ID {} for entity {}", details.getId(), id);
+                final String update = "INSERT INTO " + DataModelUtil.TABLE_NAME_ENTITY_ASSESSOR + " ("
+                        + DataModelUtil.COLUMN_NAME_ENTITY_ASSESSOR_ENTITY_ID + ", " 
+                        + DataModelUtil.COLUMN_NAME_ENTITY_ASSESSOR_ASSESSOR_ID + ") VALUES (?,?)";
+                final Object[] params = new Object[] { id, details.getId() };
+                int[] types = new int[] { Types.BIGINT, Types.VARCHAR };
+                int rowId = jdbcTemplate.update(update, params, types);
+                if (rowId < 1) {
+                    log.error("Could not add entity assessor details for {} with clause {}", id, update);
+                    throw new SurveySystemConnectorException("Could not add entity assessor details for " + id);
+                }                             
+            }
+        }
+    }
+    
+    /**
+     * Updates the survey ids for entity.
+     * @param id The entity id.
+     * @param storedSids The stored set of survey ids.
+     * @param sids The target set of survey ids.
+     * @throws SurveySystemConnectorException If operation fails.
+     */
+    protected void updateEntitySids(final String id, final Set<String> storedSids, final Set<String> sids) 
+        throws SurveySystemConnectorException {
+        for (final String sid : storedSids) {
             if (!sids.contains(sid)) {
                 log.debug("Invalidating survey ID {} for entity {}", sid, id);
                 final String update = "UPDATE " + DataModelUtil.TABLE_NAME_ENTITY_SURVEY + " SET "
@@ -201,8 +257,24 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                 }             
             }
         }
+        
     }
 
+    /**
+     * Helper method to check whether current id already exists in the list of assessors.
+     * @param assessors The list of assessors.
+     * @param id The id to be checked.
+     * @return True if exists, false otherwise.
+     */
+    protected boolean listContains(final List<AssessorDetails> assessors, final String id) {
+        for (final AssessorDetails details : assessors) {
+            if (id.equals(details.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     /** {@inheritDoc} */
     @Override
     public synchronized void updateAssessorDetails(final AssessorDetails assessor) 

@@ -186,7 +186,9 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         details.getSids().addAll(select.getSelectedItems());
         LOG.debug("New set of surveys " + details.getSids());
         verifySuccess(getMainUI().getSatApiClient().updateEntity(details));
-        entities.setItems(getFilteredEntityDetails());
+        List<EntityDetails> entityDetails = getFilteredEntityDetails();
+        entities.setHeightByRows(entityDetails.size() > 0 ? entityDetails.size() : 1);
+        entities.setItems(entityDetails);
         ((Window) event.getButton().getParent().getParent()).close();
     }
 
@@ -259,7 +261,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             String assessorId = item.split(":")[0];
             for (AssessorDetails detail : assessorDetails) {
                 if (detail.getId().equals(assessorId)) {
-                    LOG.debug("Adding assessor "+ detail.getId());
+                    LOG.debug("Adding assessor " + detail.getId());
                     details.getAssessors().add(detail);
                 }
             }

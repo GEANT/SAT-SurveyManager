@@ -70,7 +70,11 @@ public class EntityDetailsExtractor implements ResultSetExtractor<ListEntitiesRe
                 assessor.setId(assessorId);
                 assessor.setType(assessorType);
                 assessor.setValue(assessorValue);
+                log.debug("Adding assessor {} to the list", assessorId);
                 details.getAssessors().add(assessor);
+            } else {
+                log.debug("Could not find assessor id = {}, type = {}, ,value = {}", assessorId, assessorType, 
+                        assessorValue);
             }
             if (surveyId != null) {
                 details.getSids().add(surveyId);

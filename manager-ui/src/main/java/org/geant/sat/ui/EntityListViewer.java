@@ -111,6 +111,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             entities.setHeightByRows(details.size() > 0 ? details.size() : 1);
         } else {
             LOG.warn("no survey details found");
+            entities.setHeightByRows(1);
         }
     }
 

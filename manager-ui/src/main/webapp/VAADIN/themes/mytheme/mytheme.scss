@@ -18,22 +18,28 @@ $v-background-color: hsl(180, 96%, 91%);
   @include valo;
 
   .v-loading-indicator,
-.v-loading-indicator-delay,
-.v-loading-indicator-wait {
-position: absolute  !important;
-top: 52%;
-right: 51%;
-z-index: 30000;
-width: 25px;
-height: 25px;
-margin: 0;
-background-position: 50%;
-background: #fff url(../valo/shared/img/spinner.gif) no-repeat 50%;
-background-color: black;
-opacity: .8;
--ms-filter: alpha(opacity=80);
-filter: alpha(opacity=80);
-}
+  .v-loading-indicator-delay,
+  .v-loading-indicator-wait {
+    position: absolute !important;
+    top: 52%;
+    right: 51%;
+    z-index: 30000;
+    width: 25px;
+    height: 35px;
+    margin: 0;
+    background-position: 50%;
+    background: #fff url(../valo/shared/img/spinner.gif) no-repeat 50%;
+    background-color: blue;
+    opacity: .8;
+    -ms-filter: alpha(opacity=65);
+    filter: alpha(opacity=65);
+  }
+  
+  valo-menu-item.selected {
+    font-weight: 800;
+    font-style: italic;
+  }
+  
   .v-grid-cell.disabled {
     color: grey;
     cursor: default;

@@ -267,6 +267,10 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
      * @return True if exists, false otherwise.
      */
     protected boolean listContains(final List<AssessorDetails> assessors, final String id) {
+        if (id == null || assessors == null) {
+            log.warn("The input is null, assessors: {}, id: {}", assessors == null, id == null);
+            return false;
+        }
         for (final AssessorDetails details : assessors) {
             if (id.equals(details.getId())) {
                 return true;

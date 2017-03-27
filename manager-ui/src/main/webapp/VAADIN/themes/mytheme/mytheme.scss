@@ -35,9 +35,10 @@ $v-background-color: hsl(180, 96%, 91%);
     filter: alpha(opacity=65);
   }
   
-  valo-menu-item.selected {
-    font-weight: 800;
-    font-style: italic;
+  .valo-menu-item:focus, .valo-menu-item:hover, .valo-menu-item.selected {
+    font-weight: 800 !important;
+    font-style: italic !important;
+    color: blue !important;
   }
   
   .v-grid-cell.disabled {

@@ -65,7 +65,8 @@ public class EntityDetailsExtractor implements ResultSetExtractor<ListEntitiesRe
             details.setName(name);
             details.setDescription(description);
             details.setCreator(creator);
-            if (assessorId != null && assessorType != null && assessorValue != null) {
+            if (assessorId != null && assessorType != null && assessorValue != null
+                    && !DataModelUtil.assessorListContains(details.getAssessors(), assessorId)) {
                 final AssessorDetails assessor = new AssessorDetails();
                 assessor.setId(assessorId);
                 assessor.setType(assessorType);
@@ -73,7 +74,7 @@ public class EntityDetailsExtractor implements ResultSetExtractor<ListEntitiesRe
                 log.debug("Adding assessor {} to the list", assessorId);
                 details.getAssessors().add(assessor);
             } else {
-                log.debug("Could not find assessor id = {}, type = {}, ,value = {}", assessorId, assessorType, 
+                log.debug("Skipped adding assessor id = {}, type = {}, ,value = {}", assessorId, assessorType, 
                         assessorValue);
             }
             if (surveyId != null) {

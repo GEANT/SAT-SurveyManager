@@ -60,14 +60,14 @@ public class ScheduleSurveyReviewViewer extends AbstractSurveyVerticalLayout {
             if (entity.getSids().size() == 0) {
                 reviewText += "\n" + getString("lang.scheduler.review.nosurveys");
             } else {
-                reviewText += "\n" + getString("lang.scheduler.review.surveys") + ": ";
+                reviewText += "\n" + getString("lang.scheduler.review.surveys");
                 for (String sid : entity.getSids())
                     reviewText += sid + " ";
             }
             if (entity.getAssessors().size() == 0) {
                 reviewText += "\n" + getString("lang.scheduler.review.noassessors");
             } else {
-                reviewText += "\n" + getString("lang.scheduler.review.assessors") + ": ";
+                reviewText += "\n" + getString("lang.scheduler.review.assessors");
                 for (AssessorDetails assessor : entity.getAssessors())
                     reviewText += assessor.getValue() + " ";
 

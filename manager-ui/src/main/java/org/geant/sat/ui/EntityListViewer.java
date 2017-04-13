@@ -55,6 +55,7 @@ import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.declarative.Design;
+import com.vaadin.ui.renderers.ButtonRenderer;
 
 /**
  * View to list all entities.
@@ -83,6 +84,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
      * @param ui
      *            Main ui instance to access shared data.
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public EntityListViewer(MainUI ui) {
         super(ui);
         Design.read(this);
@@ -94,6 +96,12 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             entities.setItems(details);
             entities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
             entities.addColumn(EntityDetails::getDescription).setCaption(getString("lang.entities.column.description"));
+            entities.addColumn(entitydetail -> getString("lang.entities.button.schedule"),
+                    new ButtonRenderer(clickEvent -> {
+                        SurveySchedulerWindow surveySchedulerWindow = new SurveySchedulerWindow(ui, (EntityDetails)clickEvent.getItem());
+                        surveySchedulerWindow.setModal(true);
+                        ui.addWindow(surveySchedulerWindow);
+                  })).setCaption(getString("lang.entities.column.schedule"));
             entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"));
             Column<EntityDetails, String> column = entities.addColumn(entitydetail -> getSurveys(entitydetail))
                     .setCaption(getString("lang.entities.column.sid"));

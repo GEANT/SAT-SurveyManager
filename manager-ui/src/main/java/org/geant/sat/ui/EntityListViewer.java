@@ -38,7 +38,6 @@ import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
 import org.geant.sat.api.dto.ListAssessorsResponse;
 import org.geant.sat.api.dto.SurveyDetails;
-import org.geant.sat.api.dto.UserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -388,34 +387,5 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         }
         return assessors;
     }
-
-    /**
-     * Method filters out entities not belonging to user. Admin is shown all
-     * entities.
-     * 
-     * @return filtered list of entities.
-     */
-    private List<EntityDetails> getFilteredEntityDetails() {
-
-        List<EntityDetails> details = null;
-        if (getMainUI().getSatApiClient() != null && getMainUI().getSatApiClient().getEntities() != null) {
-            details = getMainUI().getSatApiClient().getEntities().getEntities();
-        } else {
-            LOG.warn("unable to parse entitydetails");
-            return details;
-        }
-        UserDetails user = getMainUI().getUser().getDetails();
-        if (getMainUI().getRole().isAdmin(user)) {
-            return details;
-        }
-        List<EntityDetails> userSpecificList = new ArrayList<EntityDetails>();
-        for (int i = 0; i < details.size(); i++) {
-            if (user.getPrincipalId() != null && user.getPrincipalId().equals(details.get(i).getCreator())) {
-                userSpecificList.add(details.get(i));
-            }
-        }
-        return userSpecificList;
-
-    }
-
+    
 }

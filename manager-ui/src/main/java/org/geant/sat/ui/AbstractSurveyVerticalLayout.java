@@ -28,13 +28,23 @@
 
 package org.geant.sat.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.geant.sat.api.dto.AbstractConnectorResponse;
+import org.geant.sat.api.dto.EntityDetails;
+import org.geant.sat.api.dto.UserDetails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.ui.VerticalLayout;
 
 /** abstract base class for vertical layouts. */
 @SuppressWarnings("serial")
 public abstract class AbstractSurveyVerticalLayout extends VerticalLayout {
+
+    /** Logger. */
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractSurveyVerticalLayout.class);
 
     /** main ui containing information shared by all views. */
     private MainUI mainUI;
@@ -85,6 +95,35 @@ public abstract class AbstractSurveyVerticalLayout extends VerticalLayout {
      */
     public boolean verifySuccess(AbstractConnectorResponse response) {
         return getMainUI().indicateSuccess(response);
+    }
+
+    /**
+     * Method filters out entities not belonging to user. Admin is shown all
+     * entities.
+     * 
+     * @return filtered list of entities.
+     */
+    protected List<EntityDetails> getFilteredEntityDetails() {
+
+        List<EntityDetails> details = null;
+        if (getMainUI().getSatApiClient() != null && getMainUI().getSatApiClient().getEntities() != null) {
+            details = getMainUI().getSatApiClient().getEntities().getEntities();
+        } else {
+            LOG.warn("unable to parse entitydetails");
+            return details;
+        }
+        UserDetails user = getMainUI().getUser().getDetails();
+        if (getMainUI().getRole().isAdmin(user)) {
+            return details;
+        }
+        List<EntityDetails> userSpecificList = new ArrayList<EntityDetails>();
+        for (int i = 0; i < details.size(); i++) {
+            if (user.getPrincipalId() != null && user.getPrincipalId().equals(details.get(i).getCreator())) {
+                userSpecificList.add(details.get(i));
+            }
+        }
+        return userSpecificList;
+
     }
 
 }

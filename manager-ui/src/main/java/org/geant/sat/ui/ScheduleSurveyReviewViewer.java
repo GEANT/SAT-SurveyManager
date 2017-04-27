@@ -56,23 +56,22 @@ public class ScheduleSurveyReviewViewer extends AbstractSurveyVerticalLayout {
         LOG.debug("Parsing survey scheduling information");
         text.setCaption(getString("lang.scheduler.review.caption"));
         for (EntityDetails entity : selectedDetails) {
-            reviewText = "\n" + getString("lang.scheduler.review.entity") + " " + entity.getName();
-            if (entity.getSids().size() == 0) {
+            LOG.debug("Parsing entity " + entity.getId() + " " + entity.getName());
+            reviewText += "\n" + getString("lang.scheduler.review.entity") + " " + entity.getName();
+            if (entity.getSids() == null || entity.getSids().size() == 0) {
                 reviewText += "\n" + getString("lang.scheduler.review.nosurveys");
             } else {
                 reviewText += "\n" + getString("lang.scheduler.review.surveys");
                 for (String sid : entity.getSids())
                     reviewText += sid + " ";
             }
-            if (entity.getAssessors().size() == 0) {
-                reviewText += "\n" + getString("lang.scheduler.review.noassessors");
+            if (entity.getAssessors() == null || entity.getAssessors().size() == 0) {
+                reviewText += "\n" + getString("lang.scheduler.review.noassessors") + "\n";
             } else {
                 reviewText += "\n" + getString("lang.scheduler.review.assessors");
                 for (AssessorDetails assessor : entity.getAssessors())
-                    reviewText += assessor.getValue() + " ";
-
+                    reviewText += assessor.getValue() + "\n";
             }
-
         }
         LOG.debug("review text:" + reviewText);
         text.setValue(reviewText);

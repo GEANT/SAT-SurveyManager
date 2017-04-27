@@ -103,7 +103,7 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
         surveys = phases.addTab(new Label(getString("lang.scheduler.tab.surveys")));
         assessors = phases.addTab(new Label(getString("lang.scheduler.tab.assessors")));
         review = phases.addTab(new Label(getString("lang.scheduler.tab.review")));
-        workPanel.setContent(new ScheduleSurveyReviewViewer(getMainUI(), selectedDetails));
+        workPanel.setContent(new ScheduleSurveyEntitiesViewer(getMainUI(), selectedDetails));
         phases.addSelectedTabChangeListener(this);
         phases.addStyleName(ValoTheme.TABSHEET_EQUAL_WIDTH_TABS);
         phases.addStyleName(ValoTheme.TABSHEET_PADDED_TABBAR);
@@ -118,7 +118,7 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
             back.setEnabled(false);
             next.setEnabled(true);
             position = 0;
-            workPanel.setContent(new ScheduleSurveyReviewViewer(getMainUI(), selectedDetails));
+            workPanel.setContent(new ScheduleSurveyEntitiesViewer(getMainUI(), selectedDetails));
             return;
         }
         if (selectedTab.equals(surveys)) {

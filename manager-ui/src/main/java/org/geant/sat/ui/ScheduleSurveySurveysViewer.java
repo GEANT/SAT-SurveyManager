@@ -63,8 +63,6 @@ public class ScheduleSurveySurveysViewer extends AbstractSurveyVerticalLayout {
         Design.read(this);
         LOG.debug("Selecting surveys for entities for scheduling");
         details = selectedDetails;
-        selectedEntity.setCaption(getString("lang.scheduler.entities.picker.caption"));
-        // init entity selection
         initializeEntitySelector();
         initializeSidSelector();
     }
@@ -75,6 +73,7 @@ public class ScheduleSurveySurveysViewer extends AbstractSurveyVerticalLayout {
             selectedEntity.setVisible(false);
             return;
         }
+        selectedEntity.setCaption(getString("lang.scheduler.entities.select.caption"));
         Set<String> entities = new HashSet<String>();
         String selected = null;
         for (EntityDetails entityDetails : details) {
@@ -96,6 +95,7 @@ public class ScheduleSurveySurveysViewer extends AbstractSurveyVerticalLayout {
             selectSids.setVisible(false);
             return;
         }
+        selectSids.setCaption(getString("lang.scheduler.surveys.picker.caption"));
         ListAllSurveysResponse resp = getMainUI().getSatApiClient().getSurveys();
         if (!verifySuccess(resp)) {
             // what should we do?

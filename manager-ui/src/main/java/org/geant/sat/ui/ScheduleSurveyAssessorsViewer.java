@@ -63,8 +63,6 @@ public class ScheduleSurveyAssessorsViewer extends AbstractSurveyVerticalLayout 
         Design.read(this);
         LOG.debug("Selecting assessors for entities for scheduling");
         details = selectedDetails;
-        selectedEntity.setCaption(getString("lang.scheduler.entities.picker.caption"));
-        // init entity selection
         initializeEntitySelector();
         initializeAssessorSelector();
     }
@@ -75,6 +73,7 @@ public class ScheduleSurveyAssessorsViewer extends AbstractSurveyVerticalLayout 
             selectedEntity.setVisible(false);
             return;
         }
+        selectedEntity.setCaption(getString("lang.scheduler.entities.select.caption"));
         Set<String> entities = new HashSet<String>();
         String selected = null;
         for (EntityDetails entityDetails : details) {
@@ -96,7 +95,7 @@ public class ScheduleSurveyAssessorsViewer extends AbstractSurveyVerticalLayout 
             selectAssessors.setVisible(false);
             return;
         }
-
+        selectAssessors.setCaption(getString("lang.scheduler.assessors.picker.caption"));
         ListAssessorsResponse resp = getMainUI().getSatApiClient().getAssessors();
         if (!verifySuccess(resp)) {
             // what should we do?

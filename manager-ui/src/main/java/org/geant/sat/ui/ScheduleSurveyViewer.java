@@ -126,7 +126,7 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
             next.setEnabled(true);
             send.setVisible(false);
             position = 1;
-            workPanel.setContent(new ScheduleSurveyReviewViewer(getMainUI(), selectedDetails));
+            workPanel.setContent(new ScheduleSurveySurveysViewer(getMainUI(), selectedDetails));
             return;
         }
         if (selectedTab.equals(assessors)) {
@@ -134,7 +134,7 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
             next.setEnabled(true);
             send.setVisible(false);
             position = 2;
-            workPanel.setContent(new ScheduleSurveyReviewViewer(getMainUI(), selectedDetails));
+            workPanel.setContent(new ScheduleSurveyAssessorsViewer(getMainUI(), selectedDetails));
             return;
         }
         if (selectedTab.equals(review)) {

@@ -63,7 +63,7 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
     /** Table showing survey questions. */
     private TabSheet phases;
     /** initial position of the tab */
-    private int position = 0;
+    private int position = 3;
     private Button back;
     private Button next;
     private Button cancel;
@@ -108,6 +108,7 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
         phases.addStyleName(ValoTheme.TABSHEET_EQUAL_WIDTH_TABS);
         phases.addStyleName(ValoTheme.TABSHEET_PADDED_TABBAR);
         phases.addStyleName(ValoTheme.TABSHEET_CENTERED_TABS);
+        phases.setSelectedTab(review);
     }
 
     @Override

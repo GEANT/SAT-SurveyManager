@@ -266,6 +266,19 @@ public class SatApiClient {
         final String encoded = gson.toJson(details);
         return getResponseWithPost(url, encoded, UserResponse.class, true);
     }
+    
+    /**
+     * Instantiates the surveys for the given list of entities.
+     * @param details The list of entities to be instantiated.
+     * @return The details for the instantiated entities.
+     */
+    public ListEntitiesResponse instantiateSurveys(final List<EntityDetails> details) {
+        log.trace("Starting to instantiate surveys");
+        final String url = apiBaseUrl + "/instantiate";
+        final Gson gson = new Gson();
+        final String encoded = gson.toJson(details);
+        return getResponseWithPost(url, encoded, ListEntitiesResponse.class, true);
+    }
 
     /**
      * Create a new role to the Survey Manager API.

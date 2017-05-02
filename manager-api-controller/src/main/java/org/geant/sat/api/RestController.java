@@ -647,7 +647,50 @@ public class RestController {
         }
         return new ResponseEntity<RoleResponse>(response, HttpStatus.OK);
     }
-
+    
+    /**
+     * Instantiates a survey.
+     * @param body The details for the entities.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return The details for the updated role.
+     */
+    @RequestMapping(headers = {
+            "content-type=application/json" }, value = "/instantiate", method = RequestMethod.POST)
+    public @ResponseBody ResponseEntity<ListEntitiesResponse> instantiateSurvey(@RequestBody List<EntityDetails> body, 
+            HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        log.debug("Starting /instantiate POST endpoint");
+        final ListEntitiesResponse response = new ListEntitiesResponse();
+        if (body == null || body.isEmpty()) {
+            log.error("Could not find any entities from the request");
+            response.setErrorMessage("Could not find any entities from the request");
+            return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.BAD_REQUEST);
+        }
+        for (final EntityDetails details : body) {
+            log.debug("Starting to instantiate entity {}", details.getId());
+            final Set<String> sids = details.getSids();
+            if (sids == null || sids.isEmpty()) {
+                log.error("Entity {} has no surveys attached", details.getId());
+                response.setErrorMessage("Entity " + details.getId() + " has no surveys attached!");
+                return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.BAD_REQUEST);
+            }
+            final List<AssessorDetails> assessors = details.getAssessors();
+            if (assessors == null || assessors.isEmpty()) {
+                log.error("Entity {} has no assessors defined", details.getId());
+                response.setErrorMessage("Entity " + details.getId() + " has no assessors defined!");
+                return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.BAD_REQUEST);                
+            }
+            for (final String sid : sids) {
+                log.debug("Starting to instantiate survey {} for entity {}", sid, details.getId());
+                for (final AssessorDetails assessor : assessors) {
+                    log.debug("Sending invitate to {} with value {}", assessor.getId(), assessor.getValue());
+                }
+            }
+        }
+        response.setEntities(body);
+        return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.OK);
+    }
+    
     /**
      * Combines details from the Survey Manager and survey system user details.
      * @param smUsers The Survey Manager user details.

@@ -140,7 +140,10 @@ public class ScheduleSurveySurveysViewer extends AbstractSurveyVerticalLayout {
             if (!event.isUserOriginated()) {
                 return;
             }
-            EntityDetails selected = selectedEntity.getSelectedItems().iterator().next();
+            EntityDetails selected = details.get(0);
+            if (details.size()>1){
+                selected = selectedEntity.getSelectedItems().iterator().next();
+            }
             selected.getSids().clear();
             LOG.debug("Setting sids " + selectSids.getSelectedItems() + " to record for " + selected.getId());
             selected.getSids().addAll(selectSids.getSelectedItems());

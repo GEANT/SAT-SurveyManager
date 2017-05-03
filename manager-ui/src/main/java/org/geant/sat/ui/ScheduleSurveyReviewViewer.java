@@ -53,10 +53,8 @@ public class ScheduleSurveyReviewViewer extends AbstractSurveyVerticalLayout {
         super(ui);
         Design.read(this);
         String reviewText = "";
-        LOG.debug("Parsing survey scheduling information");
         text.setCaption(getString("lang.scheduler.review.caption"));
         for (EntityDetails entity : selectedDetails) {
-            LOG.debug("Parsing entity " + entity.getId() + " " + entity.getName());
             reviewText += "\n" + getString("lang.scheduler.review.entity") + " " + entity.getName();
             if (entity.getSids() == null || entity.getSids().size() == 0) {
                 reviewText += "\n" + getString("lang.scheduler.review.nosurveys");
@@ -73,7 +71,6 @@ public class ScheduleSurveyReviewViewer extends AbstractSurveyVerticalLayout {
                     reviewText += assessor.getValue() + "\n";
             }
         }
-        LOG.debug("review text:" + reviewText);
         text.setValue(reviewText);
     }
 

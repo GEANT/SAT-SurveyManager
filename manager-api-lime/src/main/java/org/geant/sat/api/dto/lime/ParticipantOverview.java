@@ -41,6 +41,9 @@ public class ParticipantOverview {
     /** The token value. */
     private String token;
     
+    /** The flag for the completion of the survey. */
+    private String completed;
+    
     /** The contact information. */
     @SerializedName("participant_info")
     private ParticipantInfo participantInfo;
@@ -93,6 +96,20 @@ public class ParticipantOverview {
         this.participantInfo = info;
     }
 
-    
-    
+    /**
+     * Get the flag for the completion of the survey.
+     * @return The flag for the completion of the survey.
+     */
+    public String getCompleted() {
+        return completed;
+    }
+
+    /**
+     * Set the flag for the completion of the survey.
+     * @param isCompleted What to set.
+     */
+    public void setCompleted(String isCompleted) {
+        this.completed = isCompleted;
+    }
+
 }

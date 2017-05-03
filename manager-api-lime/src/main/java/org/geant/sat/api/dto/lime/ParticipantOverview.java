@@ -33,7 +33,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Details for one participant.
  */
-public class ParticipantDetails {
+public class ParticipantOverview {
     
     /** The token identifier. */
     private String tid;

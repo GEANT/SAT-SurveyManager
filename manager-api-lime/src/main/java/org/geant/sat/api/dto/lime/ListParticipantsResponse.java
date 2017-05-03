@@ -40,13 +40,13 @@ public class ListParticipantsResponse extends AbstractLimeSurveyResponse {
 
     /** The details for the participants. */
     @SerializedName("result")
-    private List<ParticipantDetails> participants = new ArrayList<>();
+    private List<ParticipantOverview> participants = new ArrayList<>();
 
     /**
      * Set the details for the participants.
      * @param details What to set.
      */
-    public void setParticipants(List<ParticipantDetails> details) {
+    public void setParticipants(List<ParticipantOverview> details) {
         participants = details;
     }
 
@@ -54,7 +54,7 @@ public class ListParticipantsResponse extends AbstractLimeSurveyResponse {
      * Get the details for the participants.
      * @return The details for the participants.
      */
-    public List<ParticipantDetails> getParticipants() {
+    public List<ParticipantOverview> getParticipants() {
         return participants;
     }
 }

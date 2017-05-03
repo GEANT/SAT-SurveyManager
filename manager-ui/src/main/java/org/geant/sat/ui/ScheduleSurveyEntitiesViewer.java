@@ -30,9 +30,9 @@ package org.geant.sat.ui;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.geant.sat.api.dto.EntityDetails;
+import org.geant.sat.ui.utils.EntityDetailsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,10 +49,21 @@ public class ScheduleSurveyEntitiesViewer extends AbstractSurveyVerticalLayout i
 
     /** Logger. */
     private static final Logger LOG = LoggerFactory.getLogger(ScheduleSurveyEntitiesViewer.class);
-
-    private TwinColSelect<String> selectEntities;
+    /** ui component to select entities. */
+    private TwinColSelect<EntityDetails> selectEntities;
+    /** the selected entities record. */
     private List<EntityDetails> details;
+    /** all available entities. */
+    private List<EntityDetails> filteredEntityDetails;
 
+    /**
+     * constructor.
+     * 
+     * @param ui
+     *            main ui.
+     * @param selectedDetails
+     *            entity configuration selected by the user.
+     */
     @SuppressWarnings("unchecked")
     ScheduleSurveyEntitiesViewer(MainUI ui, List<EntityDetails> selectedDetails) {
         super(ui);
@@ -60,16 +71,11 @@ public class ScheduleSurveyEntitiesViewer extends AbstractSurveyVerticalLayout i
         LOG.debug("Selecting entities for survey scheduling");
         selectEntities.setCaption(getString("lang.scheduler.entities.picker.caption"));
         details = selectedDetails;
-        Set<String> entities = new HashSet<String>();
-        for (EntityDetails entityDetails : getFilteredEntityDetails()) {
-            entities.add(entityDetails.getId() + ":" + entityDetails.getName());
-        }
-        selectEntities.setItems(entities);
-        Set<String> selectedEntities = new HashSet<String>();
-        for (EntityDetails entityDetails : selectedDetails) {
-            selectedEntities.add(entityDetails.getId() + ":" + entityDetails.getName());
-        }
-        selectEntities.updateSelection(selectedEntities, new HashSet<String>());
+        filteredEntityDetails = getFilteredEntityDetails();
+        selectEntities.setItems(filteredEntityDetails);
+        selectEntities.setItemCaptionGenerator(new EntityDetailsHelper());
+        selectEntities.updateSelection(EntityDetailsHelper.selectionToSet(filteredEntityDetails, details),
+                new HashSet<EntityDetails>());
         selectEntities.addValueChangeListener(this);
 
     }
@@ -77,36 +83,28 @@ public class ScheduleSurveyEntitiesViewer extends AbstractSurveyVerticalLayout i
     @Override
     public void valueChange(ValueChangeEvent event) {
         // make sure each selected is recorded
-        for (String selectedEntity : selectEntities.getSelectedItems()) {
-            String id = selectedEntity.split(":")[0];
+        for (EntityDetails selectedEntity : selectEntities.getSelectedItems()) {
             boolean found = false;
             for (EntityDetails entityDetails : details) {
-                if (entityDetails.getId().equals(id)) {
+                if (entityDetails.getId().equals(selectedEntity.getId())) {
                     found = true;
                 }
             }
             if (!found) {
-                LOG.debug("add item " + id);
-                for (EntityDetails entityDetails : getFilteredEntityDetails()) {
-                    if (entityDetails.getId().equals(id)) {
-                        details.add(entityDetails);
-                        // there may have been at most one modification
-                        return;
-                    }
-                }
+                LOG.debug("add item " + EntityDetailsHelper.display(selectedEntity));
+                details.add(selectedEntity);
             }
         }
         // make sure each recorded is still selected
         for (EntityDetails entityDetails : details) {
             boolean found = false;
-            for (String selectedEntity : selectEntities.getSelectedItems()) {
-                String id = selectedEntity.split(":")[0];
-                if (entityDetails.getId().equals(id)) {
+            for (EntityDetails selectedEntity : selectEntities.getSelectedItems()) {
+                if (entityDetails.getId().equals(selectedEntity.getId())) {
                     found = true;
                 }
             }
             if (!found) {
-                LOG.debug("remove item " + entityDetails.getId());
+                LOG.debug("remove item " + EntityDetailsHelper.display(entityDetails));
                 details.remove(entityDetails);
                 // there may have been at most one modification
                 return;

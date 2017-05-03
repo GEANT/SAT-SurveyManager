@@ -31,11 +31,10 @@ package org.geant.sat.ui;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
 import org.geant.sat.api.dto.SurveyDetails;
+import org.geant.sat.ui.utils.EntityDetailsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,11 +52,21 @@ public class ScheduleSurveySurveysViewer extends AbstractSurveyVerticalLayout {
 
     /** Logger. */
     private static final Logger LOG = LoggerFactory.getLogger(ScheduleSurveySurveysViewer.class);
-
-    private ListSelect<String> selectedEntity;
+    /** ui component to select entities. */
+    private ListSelect<EntityDetails> selectedEntity;
+    /** ui component to select surveys. */
     private TwinColSelect<String> selectSids;
+    /** the selected entities/configuration record. */
     private List<EntityDetails> details;
 
+    /**
+     * constructor.
+     * 
+     * @param ui
+     *            main ui.
+     * @param selectedDetails
+     *            entity configuration selected by the user.
+     */
     ScheduleSurveySurveysViewer(MainUI ui, List<EntityDetails> selectedDetails) {
         super(ui);
         Design.read(this);
@@ -74,21 +83,15 @@ public class ScheduleSurveySurveysViewer extends AbstractSurveyVerticalLayout {
             return;
         }
         selectedEntity.setCaption(getString("lang.scheduler.entities.select.caption"));
-        Set<String> entities = new HashSet<String>();
-        String selected = null;
-        for (EntityDetails entityDetails : details) {
-            entities.add(entityDetails.getId() + ":" + entityDetails.getName());
-            if (selected == null) {
-                selected = entityDetails.getId() + ":" + entityDetails.getName();
-            }
-        }
-        if (entities.size() > 0) {
-            selectedEntity.setItems(entities);
-        }
+        selectedEntity.setItems(details);
+        selectedEntity.setItemCaptionGenerator(new EntityDetailsHelper());
         selectedEntity.addValueChangeListener(new EntityChanged());
-        selectedEntity.select(selected);
+        selectedEntity.select(details.get(0));
     }
 
+    /**
+     * Initialize ui component for selecting surveys.
+     */
     @SuppressWarnings("unchecked")
     private void initializeSidSelector() {
         if (details.size() == 0) {
@@ -114,16 +117,7 @@ public class ScheduleSurveySurveysViewer extends AbstractSurveyVerticalLayout {
         selectSids.updateSelection(selected.getSids(), new HashSet<String>());
     }
 
-    private String resolveSelectedId() {
-        if (details.size() == 0) {
-            return "";
-        }
-        if (details.size() == 1) {
-            return details.get(0).getId();
-        }
-        return selectedEntity.getSelectedItems().iterator().next().split(":")[0];
-    }
-
+    /** class implementing entity selection actions. */
     private class EntityChanged implements ValueChangeListener {
 
         @Override
@@ -131,18 +125,14 @@ public class ScheduleSurveySurveysViewer extends AbstractSurveyVerticalLayout {
             if (!event.isUserOriginated()) {
                 return;
             }
-            String id = resolveSelectedId();
-            for (EntityDetails selected : details) {
-                if (selected.getId().equals(id)) {
-                    selectSids.deselectAll();
-                    LOG.debug("Setting sids " + selected.getSids() + " to ui control for " + id);
-                    selectSids.updateSelection(selected.getSids(), new HashSet<String>());
-                }
-            }
-
+            EntityDetails selected = selectedEntity.getSelectedItems().iterator().next();
+            selectSids.deselectAll();
+            LOG.debug("Setting sids " + selected.getSids() + " to ui control for " + selected.getId());
+            selectSids.updateSelection(selected.getSids(), new HashSet<String>());
         }
     }
 
+    /** class implementing survey selection actions. */
     private class SidChanged implements ValueChangeListener {
 
         @Override
@@ -150,15 +140,13 @@ public class ScheduleSurveySurveysViewer extends AbstractSurveyVerticalLayout {
             if (!event.isUserOriginated()) {
                 return;
             }
-            String id = resolveSelectedId();
-            for (EntityDetails selected : details) {
-                if (selected.getId().equals(id)) {
-                    selected.getSids().clear();
-                    LOG.debug("Setting sids " + selectSids.getSelectedItems() + " to record for " + id);
-                    selected.getSids().addAll(selectSids.getSelectedItems());
-                }
+            EntityDetails selected = details.get(0);
+            if (details.size()>1){
+                selected = selectedEntity.getSelectedItems().iterator().next();
             }
-
+            selected.getSids().clear();
+            LOG.debug("Setting sids " + selectSids.getSelectedItems() + " to record for " + selected.getId());
+            selected.getSids().addAll(selectSids.getSelectedItems());
         }
 
     }

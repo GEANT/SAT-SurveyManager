@@ -56,14 +56,19 @@ import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.QuestionDetails;
 import org.geant.sat.api.dto.QuestionsResponse;
 import org.geant.sat.api.dto.SurveyDetails;
+import org.geant.sat.api.dto.SurveyTokenDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
+import org.geant.sat.api.dto.ListSurveyTokensResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.geant.sat.api.dto.lime.LimeStatusResponse;
 import org.geant.sat.api.dto.lime.LimeStatusResponse.Status;
 import org.geant.sat.api.dto.lime.ListQuestionsResponse;
 import org.geant.sat.api.dto.lime.ListSurveysResponse;
+import org.geant.sat.api.dto.lime.ParticipantOverview;
 import org.geant.sat.api.dto.lime.ListLimeUsersResponse;
+import org.geant.sat.api.dto.lime.ListParticipantsResponse;
 import org.geant.sat.api.dto.lime.AbstractLimeSurveyResponse;
+import org.geant.sat.api.dto.lime.AddParticipantsResponse;
 import org.geant.sat.api.dto.lime.LimePermission;
 import org.geant.sat.api.dto.lime.LimeQuestionDetails;
 import org.geant.sat.api.dto.lime.StringResultResponse;
@@ -99,7 +104,16 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /** The attribute name for language in the Limesurvey database. */
     public static final String ATTRIBUTE_NAME_LANGUAGE = ATTRIBUTE_NAME_PREFIX + "language";
+    
+    /** The first name injected aside of the token. */
+    public static final String PARTICIPANT_FIRST_NAME = "Managed by SAT";
 
+    /** The last name injected aside of the token. */
+    public static final String PARTICIPANT_LAST_NAME = "Managed by SAT";
+
+    /** The email address injected aside of the token. */
+    public static final String PARTICIPANT_EMAIL = "noreply@invalid.org";
+    
     /** Class logger. */
     private final Logger log = LoggerFactory.getLogger(LimeSurveyConnector.class);
 
@@ -114,6 +128,9 @@ public class LimeSurveyConnector implements SurveySystemConnector {
 
     /** The session key (obtained after successful authentication). */
     private String sessionKey;
+    
+    /** The maximum amount of entries returned by list_participants. */
+    private int maxParticipants = 1000;
 
     /**
      * Constructor.
@@ -178,6 +195,15 @@ public class LimeSurveyConnector implements SurveySystemConnector {
     public void setApiEndpoint(String newApiEndpoint) {
         this.apiEndpoint = newApiEndpoint;
     }
+    
+    /**
+     * Set the maximum amount of entries returned by list_participants.
+     * 
+     * @param participants What to set.
+     */
+    public void setMaxParticipants(int participants) {
+        maxParticipants = participants;
+    }
 
     /** {@inheritDoc} */
     public ListAllSurveysResponse listSurveys() {
@@ -221,6 +247,25 @@ public class LimeSurveyConnector implements SurveySystemConnector {
             log.error("Could not fetch surveys from Limesurvey", e);
             response.setErrorMessage(e.getMessage());
         }
+        return response;
+    }
+    
+    /** {@inheritDoc} */
+    public ListSurveyTokensResponse listSurveyTokens(final String sid) {
+        final ListSurveyTokensResponse response = new ListSurveyTokensResponse();
+        try {
+            final ListParticipantsResponse participants = fetchParticipants(sid);
+            for (final ParticipantOverview participant : participants.getParticipants()) {
+                final SurveyTokenDetails details = new SurveyTokenDetails();
+                details.setSurveyId(sid);
+                details.setCompleted("Y".equalsIgnoreCase(participant.getCompleted()));
+                details.setToken(participant.getToken());
+                response.getTokens().add(details);
+            }
+        } catch (SurveySystemConnectorException e) {
+            log.error("Could not fetch questions from Limesurvey", e);
+            response.setErrorMessage(e.getMessage());
+        }   
         return response;
     }
 
@@ -349,6 +394,31 @@ public class LimeSurveyConnector implements SurveySystemConnector {
             }
         }
         throw new SurveySystemConnectorException("Survey " + sid + " not found to be updated!");
+    }
+    
+    /**
+     * Creates a new token for the given survey to the survey management system.
+     * @param sid The survey identifier.
+     * @return The generated token.
+     * @throws SurveySystemConnectorException If the token cannot be generated.
+     */
+    public String addToken(final String sid) throws SurveySystemConnectorException {
+        log.debug("Adding a token {} for survey {}", sid);
+        final String contents = getContents("add_participants", "\"" + sid + "\", [{\"firstname\":\"" 
+                + PARTICIPANT_FIRST_NAME + "\",\"lastname\":\"" + PARTICIPANT_LAST_NAME + "\",\"email\":\""
+                + PARTICIPANT_EMAIL + "\",\"emailstatus\":\"OK\"}]", true);
+        log.trace("Contents {}", contents);
+        Gson gson = new Gson();
+        final AddParticipantsResponse response = gson.fromJson(contents, AddParticipantsResponse.class);
+        if (response.getErrorMessage() != null) {
+            log.error("Found error from Limesurvey API: {}", response.getErrorMessage());
+            throw new SurveySystemConnectorException(response.getErrorMessage());
+        }
+        if (response.getParticipantDetails() == null || response.getParticipantDetails().isEmpty()) {
+            log.error("No participant details found from the response");
+            throw new SurveySystemConnectorException("No participant details found from the response");
+        }
+        return response.getParticipantDetails().get(0).getToken();
     }
 
     /**
@@ -563,6 +633,10 @@ public class LimeSurveyConnector implements SurveySystemConnector {
      */
     protected ListLimeUsersResponse fetchUsers() throws SurveySystemConnectorException {
         return getContents("list_users", null, new ListLimeUsersResponse(), true);
+    }
+    
+    protected ListParticipantsResponse fetchParticipants(final String sid) throws SurveySystemConnectorException {
+        return getContents("list_participants", sid + ", 0, " + maxParticipants + ", false, [ \"completed\" ]", new ListParticipantsResponse(), true);
     }
 
     /**

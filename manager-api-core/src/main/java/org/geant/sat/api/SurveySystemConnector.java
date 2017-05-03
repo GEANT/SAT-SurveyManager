@@ -33,6 +33,7 @@ import org.geant.sat.api.dto.QuestionsResponse;
 import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.SurveyResponse;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
+import org.geant.sat.api.dto.ListSurveyTokensResponse;
 
 /**
  * An interface for the connectors communicating with the survey system.
@@ -75,4 +76,12 @@ public interface SurveySystemConnector {
      */
     public void updateSurveyDetails(final SurveyDetails survey) throws SurveySystemConnectorException;
 
+    /**
+     * List all the survey tokens in the survey system for one survey.
+     * @param sid The survey identifier.
+     * @return All the survey tokens in the survey system for one survey.
+     * @throws SurveySystemConnectorException In the case of any errors.
+     */
+    public ListSurveyTokensResponse listSurveyTokens(final String sid) throws SurveySystemConnectorException;
+    
 }

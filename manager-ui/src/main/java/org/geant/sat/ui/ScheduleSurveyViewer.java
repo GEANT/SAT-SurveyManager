@@ -47,6 +47,7 @@ import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.declarative.Design;
 import com.vaadin.ui.themes.ValoTheme;
+import com.vaadin.ui.Window;
 
 /** class implementing view to survey questions. */
 @SuppressWarnings("serial")
@@ -159,6 +160,21 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
             phases.setSelectedTab(++position);
             return;
         }
+        if (event.getButton() == send) {
+            sendSurveyus(event);
+            return;
+        }
+        if (event.getButton() == cancel) {
+            ((Window) getParent()).close();
+            return;
+        }
+
+    }
+
+    public void sendSurveyus(ClickEvent event) {
+        LOG.debug("Sending surveys");
+        getMainUI().getSatApiClient().instantiateSurveys(selectedDetails);
+        ((Window) getParent()).close();
 
     }
 

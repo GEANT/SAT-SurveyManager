@@ -31,7 +31,7 @@ package org.geant.sat.api.dto.lime;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Details for one participant.
+ * Overview for one participant.
  */
 public class ParticipantOverview {
     

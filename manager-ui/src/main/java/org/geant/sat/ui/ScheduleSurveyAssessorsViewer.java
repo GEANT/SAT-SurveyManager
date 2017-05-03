@@ -28,14 +28,14 @@
 
 package org.geant.sat.ui;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListAssessorsResponse;
+import org.geant.sat.ui.utils.AssessorDetailsHelper;
+import org.geant.sat.ui.utils.EntityDetailsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,20 +53,41 @@ public class ScheduleSurveyAssessorsViewer extends AbstractSurveyVerticalLayout 
 
     /** Logger. */
     private static final Logger LOG = LoggerFactory.getLogger(ScheduleSurveyAssessorsViewer.class);
-
-    private ListSelect<String> selectedEntity;
-    private TwinColSelect<String> selectAssessors;
+    /** ui component to select entities. */
+    private ListSelect<EntityDetails> selectedEntity;
+    /** the selected entities record. */
     private List<EntityDetails> details;
+    /** ui component for selecting assessors for entity. */
+    private TwinColSelect<AssessorDetails> selectAssessors;
+    /** all available assessors. */
+    private List<AssessorDetails> assessorDetails;
 
+    /**
+     * constructor.
+     * 
+     * @param ui
+     *            main ui.
+     * @param selectedDetails
+     *            entity configuration selected by the user.
+     */
     ScheduleSurveyAssessorsViewer(MainUI ui, List<EntityDetails> selectedDetails) {
         super(ui);
         Design.read(this);
         LOG.debug("Selecting assessors for entities for scheduling");
         details = selectedDetails;
+        ListAssessorsResponse resp = getMainUI().getSatApiClient().getAssessors();
+        if (!verifySuccess(resp)) {
+            // TODO what should we do?
+        }
+        assessorDetails = resp.getAssessors();
         initializeEntitySelector();
         initializeAssessorSelector();
     }
 
+    /**
+     * Initializes entity selector component.
+     * 
+     */
     @SuppressWarnings("unchecked")
     private void initializeEntitySelector() {
         if (details.size() < 2) {
@@ -74,21 +95,15 @@ public class ScheduleSurveyAssessorsViewer extends AbstractSurveyVerticalLayout 
             return;
         }
         selectedEntity.setCaption(getString("lang.scheduler.entities.select.caption"));
-        Set<String> entities = new HashSet<String>();
-        String selected = null;
-        for (EntityDetails entityDetails : details) {
-            entities.add(entityDetails.getId() + ":" + entityDetails.getName());
-            if (selected == null) {
-                selected = entityDetails.getId() + ":" + entityDetails.getName();
-            }
-        }
-        if (entities.size() > 0) {
-            selectedEntity.setItems(entities);
-        }
+        selectedEntity.setItems(details);
+        selectedEntity.setItemCaptionGenerator(new EntityDetailsHelper());
         selectedEntity.addValueChangeListener(new EntityChanged());
-        selectedEntity.select(selected);
+        selectedEntity.select(details.get(0));
     }
 
+    /**
+     * Initializes the assessor selector component.
+     */
     @SuppressWarnings("unchecked")
     private void initializeAssessorSelector() {
         if (details.size() == 0) {
@@ -96,44 +111,15 @@ public class ScheduleSurveyAssessorsViewer extends AbstractSurveyVerticalLayout 
             return;
         }
         selectAssessors.setCaption(getString("lang.scheduler.assessors.picker.caption"));
-        ListAssessorsResponse resp = getMainUI().getSatApiClient().getAssessors();
-        if (!verifySuccess(resp)) {
-            // what should we do?
-        }
-        List<AssessorDetails> assessorDetails = resp.getAssessors();
-        List<String> selectableAssessorDetails = new ArrayList<String>();
-        for (AssessorDetails assessorDetail : assessorDetails) {
-            selectableAssessorDetails.add(assessorDetail.getId() + ":" + assessorDetail.getValue());
-        }
-        selectAssessors.setItems(selectableAssessorDetails);
+        selectAssessors.setItems(assessorDetails);
+        selectAssessors.setItemCaptionGenerator(new AssessorDetailsHelper());
         selectAssessors.addValueChangeListener(new AssessorChanged());
         EntityDetails selected = details.get(0);
-        Set<String> selectedAssessorDetails = new HashSet<String>();
-        for (AssessorDetails assessorDetail : selected.getAssessors()) {
-            selectedAssessorDetails.add(assessorDetail.getId() + ":" + assessorDetail.getValue());
-        }
-        LOG.debug("Initial selection " + selectedAssessorDetails);
-        selectAssessors.updateSelection(selectedAssessorDetails, new HashSet<String>());
+        selectAssessors.updateSelection(AssessorDetailsHelper.selectionToSet(assessorDetails, selected.getAssessors()),
+                new HashSet<AssessorDetails>());
     }
 
-    private String resolveSelectedId() {
-        if (details.size() == 0) {
-            return "";
-        }
-        if (details.size() == 1) {
-            return details.get(0).getId();
-        }
-        return selectedEntity.getSelectedItems().iterator().next().split(":")[0];
-    }
-
-    private List<String> resolveSelectedAssessors() {
-        List<String> ret = new ArrayList<String>();
-        for (String selected : selectAssessors.getSelectedItems()) {
-            ret.add(selected.split(":")[0]);
-        }
-        return ret;
-    }
-
+    /** class implementing entity selection actions. */
     private class EntityChanged implements ValueChangeListener {
 
         @Override
@@ -141,22 +127,14 @@ public class ScheduleSurveyAssessorsViewer extends AbstractSurveyVerticalLayout 
             if (!event.isUserOriginated()) {
                 return;
             }
-            String id = resolveSelectedId();
-            for (EntityDetails selected : details) {
-                if (selected.getId().equals(id)) {
-                    selectAssessors.deselectAll();
-                    Set<String> selectedAssessorDetails = new HashSet<String>();
-                    for (AssessorDetails assessorDetail : selected.getAssessors()) {
-                        selectedAssessorDetails.add(assessorDetail.getId() + ":" + assessorDetail.getValue());
-                    }
-                    LOG.debug("Setting assessors " + selectedAssessorDetails + " to ui control for " + id);
-                    selectAssessors.updateSelection(selectedAssessorDetails, new HashSet<String>());
-                }
-            }
-
+            selectAssessors.deselectAll();
+            selectAssessors.updateSelection(
+                    AssessorDetailsHelper.selectionToSet(assessorDetails, selectedEntity.getSelectedItems().iterator()
+                            .next().getAssessors()), new HashSet<AssessorDetails>());
         }
     }
 
+    /** class implementing assessor selection actions. */
     private class AssessorChanged implements ValueChangeListener {
 
         @Override
@@ -164,26 +142,9 @@ public class ScheduleSurveyAssessorsViewer extends AbstractSurveyVerticalLayout 
             if (!event.isUserOriginated()) {
                 return;
             }
-            String id = resolveSelectedId();
-            ListAssessorsResponse resp = getMainUI().getSatApiClient().getAssessors();
-            if (!verifySuccess(resp)) {
-                // what should we do?
-            }
-            for (EntityDetails selected : details) {
-                if (selected.getId().equals(id)) {
-                    selected.getAssessors().clear();
-                    List<String> ids = resolveSelectedAssessors();
-                    for (AssessorDetails assessorDetails : resp.getAssessors()) {
-                        if (ids.contains(assessorDetails.getId())) {
-                            LOG.debug("Setting assessor " + assessorDetails.getValue() + " to record for " + id);
-                            selected.getAssessors().add(assessorDetails);
-                        }
-                    }
-                }
-            }
-
+            EntityDetails selected = selectedEntity.getSelectedItems().iterator().next();
+            selected.getAssessors().clear();
+            selected.getAssessors().addAll(selectAssessors.getSelectedItems());
         }
-
     }
-
 }

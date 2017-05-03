@@ -31,13 +31,13 @@ package org.geant.sat.ui;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
 import org.geant.sat.api.dto.ListAssessorsResponse;
 import org.geant.sat.api.dto.SurveyDetails;
+import org.geant.sat.ui.utils.AssessorDetailsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +74,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
 
     /** Table showing entities. */
     private Grid<EntityDetails> entities;
-    /** Add entity button */
+    /** Add entity button. */
     private Button addEntity;
 
     /**
@@ -95,12 +95,14 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             entities.setItems(details);
             entities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
             entities.addColumn(EntityDetails::getDescription).setCaption(getString("lang.entities.column.description"));
-            entities.addColumn(entitydetail -> getString("lang.entities.button.schedule"),
+            entities.addColumn(
+                    entitydetail -> getString("lang.entities.button.schedule"),
                     new ButtonRenderer(clickEvent -> {
-                        SurveySchedulerWindow surveySchedulerWindow = new SurveySchedulerWindow(ui, (EntityDetails)clickEvent.getItem());
+                        SurveySchedulerWindow surveySchedulerWindow = new SurveySchedulerWindow(ui,
+                                (EntityDetails) clickEvent.getItem());
                         surveySchedulerWindow.setModal(true);
                         ui.addWindow(surveySchedulerWindow);
-                  })).setCaption(getString("lang.entities.column.schedule"));
+                    })).setCaption(getString("lang.entities.column.schedule"));
             entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"));
             Column<EntityDetails, String> column = entities.addColumn(entitydetail -> getSurveys(entitydetail))
                     .setCaption(getString("lang.entities.column.sid"));
@@ -140,11 +142,18 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             break;
         case COLUMN_ASSESSORS:
             editAssessors(details);
+            break;
         default:
             break;
         }
     }
 
+    /**
+     * Creates a subwindow for editing survey details of entity.
+     * 
+     * @param details
+     *            entity
+     */
     private void editSurveys(EntityDetails details) {
         Window subWindowNewEntity = new Window(getString("lang.window.newentity.editsids.title"));
         subWindowNewEntity.setModal(true);
@@ -186,8 +195,8 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
      */
     private void editedSurveys(ClickEvent event) {
         @SuppressWarnings("unchecked")
-        TwinColSelect<String> select = ((TwinColSelect<String>) ((VerticalLayout) event.getButton().getParent())
-                .getComponent(0));
+        TwinColSelect<String> select = (TwinColSelect<String>) ((VerticalLayout) event.getButton().getParent())
+                .getComponent(0);
         EntityDetails details = (EntityDetails) select.getData();
         LOG.debug("Original surveys " + details.getSids());
         details.getSids().clear();
@@ -208,14 +217,21 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         ((Window) event.getButton().getParent().getParent()).close();
     }
 
+    /**
+     * Creates a subwindow for editing assessor details of entity.
+     * 
+     * @param details
+     *            entity
+     */
     private void editAssessors(EntityDetails details) {
         Window subWindowNewEntity = new Window(getString("lang.window.newentity.editassessors.title"));
         subWindowNewEntity.setWidth("80%");
         subWindowNewEntity.setModal(true);
         VerticalLayout subContent = new VerticalLayout();
         subContent.setWidth("100%");
-        TwinColSelect<String> selectAssessors = new TwinColSelect<>(
+        TwinColSelect<AssessorDetails> selectAssessors = new TwinColSelect<>(
                 getString("lang.window.newentity.editassessors.assessors"));
+        selectAssessors.setItemCaptionGenerator(new AssessorDetailsHelper());
         selectAssessors.setWidth("100%");
         selectAssessors.setData(details);
         ListAssessorsResponse resp = getMainUI().getSatApiClient().getAssessors();
@@ -223,17 +239,9 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             return;
         }
         List<AssessorDetails> assessorDetails = resp.getAssessors();
-        List<String> assessors = new ArrayList<String>();
-        for (AssessorDetails assessorDetail : assessorDetails) {
-            assessors.add(assessorDetail.getId() + ":" + assessorDetail.getValue());
-        }
-        selectAssessors.setItems(assessors);
-        // set current sids as selection
-        Set<String> currentAssessors = new HashSet<String>();
-        for (AssessorDetails assessorDetail : details.getAssessors()) {
-            currentAssessors.add(assessorDetail.getId() + ":" + assessorDetail.getValue());
-        }
-        selectAssessors.updateSelection(currentAssessors, new HashSet<String>());
+        selectAssessors.setItems(assessorDetails);
+        selectAssessors.updateSelection(AssessorDetailsHelper.selectionToSet(assessorDetails, details.getAssessors()),
+                new HashSet<AssessorDetails>());
         subContent.addComponent(selectAssessors, 0);
         Button editButton = new Button(getString("lang.window.newentity.buttonModify"));
         subContent.addComponent(editButton, 1);
@@ -253,25 +261,12 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
      */
     private void editedAssessors(ClickEvent event) {
         @SuppressWarnings("unchecked")
-        TwinColSelect<String> select = ((TwinColSelect<String>) ((VerticalLayout) event.getButton().getParent())
-                .getComponent(0));
+        TwinColSelect<AssessorDetails> select = (TwinColSelect<AssessorDetails>) ((VerticalLayout) event.getButton()
+                .getParent()).getComponent(0);
         EntityDetails details = (EntityDetails) select.getData();
         LOG.debug("Selected items " + select.getSelectedItems());
-        ListAssessorsResponse resp = getMainUI().getSatApiClient().getAssessors();
-        if (!verifySuccess(resp)) {
-            return;
-        }
-        List<AssessorDetails> assessorDetails = resp.getAssessors();
         details.getAssessors().clear();
-        for (String item : select.getSelectedItems()) {
-            String assessorId = item.split(":")[0];
-            for (AssessorDetails detail : assessorDetails) {
-                if (detail.getId().equals(assessorId)) {
-                    LOG.debug("Adding assessor " + detail.getId());
-                    details.getAssessors().add(detail);
-                }
-            }
-        }
+        details.getAssessors().addAll(select.getSelectedItems());
         verifySuccess(getMainUI().getSatApiClient().updateEntity(details));
         entities.setItems(getFilteredEntityDetails());
         ((Window) event.getButton().getParent().getParent()).close();
@@ -383,9 +378,9 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             return assessors;
         }
         for (AssessorDetails assDetails : details.getAssessors()) {
-            assessors += assDetails.getType() + ":" + assDetails.getValue();
+            assessors += AssessorDetailsHelper.display(assDetails) + " ";
         }
         return assessors;
     }
-    
+
 }

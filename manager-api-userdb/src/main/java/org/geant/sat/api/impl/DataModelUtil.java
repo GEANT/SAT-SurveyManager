@@ -299,7 +299,7 @@ public final class DataModelUtil {
         sb.append(TABLE_NAME_ASSESSOR_TOKEN + "." + COLUMN_NAME_ASSESSOR_SURVEY_ASSESSOR_ID + ", ");
         sb.append(TABLE_NAME_ASSESSOR_TOKEN + "." + COLUMN_NAME_ASSESSOR_SURVEY_EVENT_ID + ", ");
         sb.append(TABLE_NAME_ASSESSOR_TOKEN + "." + COLUMN_NAME_ASSESSOR_SURVEY_TOKEN + ", ");
-        sb.append(TABLE_NAME_USER + "." + COLUMN_NAME_USER_PRINCIPAL_ID + ", ");
+        sb.append(TABLE_NAME_USER + "." + COLUMN_NAME_USER_PRINCIPAL_ID);
         sb.append(" FROM " + TABLE_NAME_ASSESSOR_TOKEN + " LEFT OUTER JOIN " + TABLE_NAME_USER);
         sb.append(" ON " + TABLE_NAME_ASSESSOR_TOKEN + "." + COLUMN_NAME_ASSESSOR_SURVEY_USER_ID + " = " + TABLE_NAME_USER + ".id");
         sb.append(" AND " + TABLE_NAME_USER + "." + COLUMN_NAME_END + " IS NULL");

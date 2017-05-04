@@ -286,7 +286,7 @@ public class SatApiClient {
      */
     public ListEntitiesResponse instantiateSurveys(final List<EntityDetails> details, final String principalId) {
         log.trace("Starting to instantiate surveys");
-        final String url = apiBaseUrl + "/instantiate";
+        final String url = apiBaseUrl + "/instantiate?principalId=" + principalId;
         final Gson gson = new Gson();
         final String encoded = gson.toJson(details);
         return getResponseWithPost(url, encoded, ListEntitiesResponse.class, true);

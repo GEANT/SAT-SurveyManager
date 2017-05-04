@@ -173,7 +173,8 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
 
     public void sendSurveyus(ClickEvent event) {
         LOG.debug("Sending surveys");
-        getMainUI().getSatApiClient().instantiateSurveys(selectedDetails);
+        final String principalId = getMainUI().getUser().getDetails().getPrincipalId();
+        getMainUI().getSatApiClient().instantiateSurveys(selectedDetails, principalId);
         ((Window) getParent()).close();
 
     }

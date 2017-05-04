@@ -270,9 +270,10 @@ public class SatApiClient {
     /**
      * Instantiates the surveys for the given list of entities.
      * @param details The list of entities to be instantiated.
+     * @param principalId The principal identifier for the one responsible for the operation.
      * @return The details for the instantiated entities.
      */
-    public ListEntitiesResponse instantiateSurveys(final List<EntityDetails> details) {
+    public ListEntitiesResponse instantiateSurveys(final List<EntityDetails> details, final String principalId) {
         log.trace("Starting to instantiate surveys");
         final String url = apiBaseUrl + "/instantiate";
         final Gson gson = new Gson();

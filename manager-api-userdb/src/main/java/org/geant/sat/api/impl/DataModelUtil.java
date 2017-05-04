@@ -286,7 +286,28 @@ public final class DataModelUtil {
         sb.append(" WHERE " + TABLE_NAME_ASSESSOR + "." + COLUMN_NAME_END + " IS NULL");
         return sb.toString();
     }
-    
+
+    /**
+     * Builds an SQL query clause for fetching all tokens for a given survey from the database.
+     * @param sid The survey identifier.
+     * @return The SQL query clause.
+     */
+    public static String buildSurveyTokensQuery(final String sid) {
+        final StringBuilder sb = new StringBuilder("SELECT ");
+        sb.append(TABLE_NAME_ASSESSOR_TOKEN + ".id, ");
+        sb.append(TABLE_NAME_ASSESSOR_TOKEN + "." + COLUMN_NAME_ASSESSOR_SURVEY_ENTITY_ID + ", ");
+        sb.append(TABLE_NAME_ASSESSOR_TOKEN + "." + COLUMN_NAME_ASSESSOR_SURVEY_ASSESSOR_ID + ", ");
+        sb.append(TABLE_NAME_ASSESSOR_TOKEN + "." + COLUMN_NAME_ASSESSOR_SURVEY_EVENT_ID + ", ");
+        sb.append(TABLE_NAME_ASSESSOR_TOKEN + "." + COLUMN_NAME_ASSESSOR_SURVEY_TOKEN + ", ");
+        sb.append(TABLE_NAME_USER + "." + COLUMN_NAME_USER_PRINCIPAL_ID + ", ");
+        sb.append(" FROM " + TABLE_NAME_ASSESSOR_TOKEN + " LEFT OUTER JOIN " + TABLE_NAME_USER);
+        sb.append(" ON " + TABLE_NAME_ASSESSOR_TOKEN + "." + COLUMN_NAME_ASSESSOR_SURVEY_USER_ID + " = " + TABLE_NAME_USER + ".id");
+        sb.append(" AND " + TABLE_NAME_USER + "." + COLUMN_NAME_END + " IS NULL");
+        sb.append(" WHERE " + TABLE_NAME_ASSESSOR_TOKEN + "." + COLUMN_NAME_END + " IS NULL");
+        sb.append(" AND " + TABLE_NAME_ASSESSOR_TOKEN + "." + COLUMN_NAME_ASSESSOR_SURVEY_SURVEY_ID + "='" + sid + "'");
+        return sb.toString();
+    }
+
     /**
      * Builds an SQL query clause for fetching assessor details from the database.
      * @param id The assessor id whose details are to be fetched.

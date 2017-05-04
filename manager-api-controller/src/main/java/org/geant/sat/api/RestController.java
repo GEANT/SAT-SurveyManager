@@ -710,7 +710,8 @@ public class RestController {
      */
     @RequestMapping(headers = {
             "content-type=application/json" }, value = "/instantiate", method = RequestMethod.POST)
-    public @ResponseBody ResponseEntity<ListEntitiesResponse> instantiateSurvey(@PathVariable String principalId,
+    public @ResponseBody ResponseEntity<ListEntitiesResponse> instantiateSurvey(
+            @RequestParam(value = "principalId", required = true) String principalId,
             @RequestBody List<EntityDetails> body, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         log.debug("Starting /instantiate POST endpoint");
         if (body == null || body.isEmpty()) {

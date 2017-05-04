@@ -46,6 +46,7 @@ import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListAssessorsResponse;
 import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
+import org.geant.sat.api.dto.ListTokensResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.RoleDetails;
 import org.geant.sat.api.dto.UserDetails;
@@ -366,10 +367,33 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
         } else {
             id = eventId;
         }
-        // TODO Auto-generated method stub
+        final String insert = "INSERT INTO " + DataModelUtil.TABLE_NAME_ASSESSOR_TOKEN + "("
+                + DataModelUtil.COLUMN_NAME_ASSESSOR_SURVEY_ASSESSOR_ID + ", "
+                + DataModelUtil.COLUMN_NAME_ASSESSOR_SURVEY_ENTITY_ID + ", "
+                + DataModelUtil.COLUMN_NAME_ASSESSOR_SURVEY_USER_ID + ", "
+                + DataModelUtil.COLUMN_NAME_ASSESSOR_SURVEY_SURVEY_ID + ", "
+                + DataModelUtil.COLUMN_NAME_ASSESSOR_SURVEY_EVENT_ID + ", "
+                + DataModelUtil.COLUMN_NAME_ASSESSOR_SURVEY_TOKEN + ") VALUES (?,?,?,?,?,?)";
+        final Object[] params = new Object[] { assessorId, entityId, getUserId(principalId), sid, id, token };
+        int[] types = new int[] { Types.BIGINT, Types.BIGINT, Types.BIGINT, Types.VARCHAR, Types.BIGINT, 
+                Types.VARCHAR };
+        int rowId = jdbcTemplate.update(insert, params, types);
+        if (rowId < 1) {
+            log.error("Could not add token details for survey {} with clause {}", sid, insert);
+            throw new SurveySystemConnectorException("Could not add token details for " + sid);
+        }  
         return id;
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public ListTokensResponse listSurveyTokens(final String sid) throws SurveySystemConnectorException {
+        log.debug("Fetching all tokens from the database for survey {}", sid);
+        final String query = DataModelUtil.buildSurveyTokensQuery(sid);
+        log.trace("Built query {}", query);
+        return jdbcTemplate.query(query, new TokenDetailsExtractor());
+    }
+    
     /**
      * Solves the current biggest event identifier value in the assessor survey token table.
      * @return The current biggest eevent identifier value.

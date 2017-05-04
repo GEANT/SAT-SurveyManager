@@ -34,6 +34,7 @@ import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.RoleDetails;
+import org.geant.sat.api.dto.ListTokensResponse;
 import org.geant.sat.api.dto.UserDetails;
 
 /**
@@ -143,5 +144,13 @@ public interface UserDatabaseConnector {
      */
     public int addSurveyToken(final String token, final String entityId, final String assessorId, 
             final String principalId, final String sid, final int eventId) throws SurveySystemConnectorException;
+    
+    /**
+     * List all survey tokens for the given survey.
+     * @param sid The survey identifier.
+     * @return All the survey tokens for the given survey.
+     * @throws SurveySystemConnectorException If the operation fails.
+     */
+    public ListTokensResponse listSurveyTokens(final String sid) throws SurveySystemConnectorException;
 
 }

@@ -173,7 +173,19 @@ public final class DataModelUtil {
     
     /** The column name for event identifier value in the assessor survey token table. */
     public static final String COLUMN_NAME_ASSESSOR_SURVEY_EVENT_ID = "eventId";
+
+    /** The column name for assessor identifier value in the assessor survey token table. */
+    public static final String COLUMN_NAME_ASSESSOR_SURVEY_ASSESSOR_ID = "assessorId";
+
+    /** The column name for entity identifier value in the assessor survey token table. */
+    public static final String COLUMN_NAME_ASSESSOR_SURVEY_ENTITY_ID = "entityId";
     
+    /** The column name for user identifier value in the assessor survey token table. */
+    public static final String COLUMN_NAME_ASSESSOR_SURVEY_USER_ID = "userId";
+
+    /** The column name for survey identifier value in the assessor survey token table. */
+    public static final String COLUMN_NAME_ASSESSOR_SURVEY_SURVEY_ID = "surveyId";
+
     /** The internal (result) column name for attribute name. */
     public static final String INT_COLUMN_NAME_ATTRIBUTE_NAME = "attrName";
 

@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * A response containing token details.
  */
-public class TokensResponse extends AbstractConnectorResponse {
+public class ListTokensResponse extends AbstractConnectorResponse {
 
     /** The details for tokens. */
     private List<TokenDetails> tokens = new ArrayList<>();

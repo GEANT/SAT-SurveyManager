@@ -41,12 +41,16 @@ import org.geant.sat.api.dto.AssessorResponse;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.EntityResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
+import org.geant.sat.api.dto.ListSurveyTokensResponse;
+import org.geant.sat.api.dto.ListTokensResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.QuestionsResponse;
 import org.geant.sat.api.dto.RoleDetails;
 import org.geant.sat.api.dto.RoleResponse;
 import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.SurveyResponse;
+import org.geant.sat.api.dto.SurveyTokenDetails;
+import org.geant.sat.api.dto.TokenDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
 import org.geant.sat.api.dto.ListAssessorsResponse;
 import org.geant.sat.api.dto.ListEntitiesResponse;
@@ -251,6 +255,49 @@ public class RestController {
             return new ResponseEntity<ListAssessorsResponse>(response, HttpStatus.BAD_GATEWAY);
         }
         return new ResponseEntity<ListAssessorsResponse>(response, HttpStatus.OK);
+    }
+    
+    /**
+     * Lists all tokens.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return All the assessors.
+     */
+    @RequestMapping(value = "/tokens", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<ListTokensResponse> listTokens(
+            @RequestParam(value = "sid", required = true) String sid, HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        log.debug("Starting /tokens endpoint");
+        final ListTokensResponse emptyResponse = new ListTokensResponse();
+        final ListTokensResponse response;
+        final ListSurveyTokensResponse surveyResponse;
+        try {
+            response = userDbConnector.listSurveyTokens(sid);
+            if (response.getErrorMessage() != null) {
+                return new ResponseEntity<ListTokensResponse>(response, HttpStatus.BAD_GATEWAY);
+            }
+            surveyResponse = surveyConnector.listSurveyTokens(sid);
+            if (surveyResponse.getErrorMessage() != null) {
+                response.setErrorMessage("Survey connector: " + surveyResponse.getErrorMessage());
+                return new ResponseEntity<ListTokensResponse>(response, HttpStatus.BAD_GATEWAY);
+            }
+        } catch (SurveySystemConnectorException e) {
+            log.error("Exception while reading the tokens", e);
+            emptyResponse.setErrorMessage(e.getMessage());
+            return new ResponseEntity<ListTokensResponse>(emptyResponse, HttpStatus.BAD_GATEWAY);            
+        }
+        for (final SurveyTokenDetails surveyDetails : surveyResponse.getTokens()) {
+            for (final TokenDetails details : response.getTokens()) {
+                if (details.getToken().equals(surveyDetails.getToken())) {
+                    log.debug("Token matched, updating the details");
+                    details.setValid(true);
+                    details.setCompleted(surveyDetails.isCompleted());
+                } else {
+                    log.trace("Tokens did not match, nothing to do");
+                }
+            }
+        }
+        return new ResponseEntity<ListTokensResponse>(response, HttpStatus.OK);
     }
 
     /**

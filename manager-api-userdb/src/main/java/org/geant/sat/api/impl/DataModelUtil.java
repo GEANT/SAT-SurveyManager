@@ -65,6 +65,9 @@ public final class DataModelUtil {
     
     /** The table name for the table containing entities links to surveys. */
     public static final String TABLE_NAME_ENTITY_SURVEY = "entitySurvey";
+    
+    /** The table name for the table containing assessor links to survey tokens. */
+    public static final String TABLE_NAME_ASSESSOR_TOKEN = "assessorSurveyToken";
 
     /** The column name for the start timestamp. */
     public static final String COLUMN_NAME_START = "start";
@@ -164,6 +167,12 @@ public final class DataModelUtil {
     
     /** The column name for survey id in the survey to entity table. */
     public static final String COLUMN_NAME_ENTITY_SURVEY_SURVEY_ID = "surveyId";
+    
+    /** The column name for token value in the assessor survey token table. */
+    public static final String COLUMN_NAME_ASSESSOR_SURVEY_TOKEN = "token";
+    
+    /** The column name for event identifier value in the assessor survey token table. */
+    public static final String COLUMN_NAME_ASSESSOR_SURVEY_EVENT_ID = "eventId";
     
     /** The internal (result) column name for attribute name. */
     public static final String INT_COLUMN_NAME_ATTRIBUTE_NAME = "attrName";

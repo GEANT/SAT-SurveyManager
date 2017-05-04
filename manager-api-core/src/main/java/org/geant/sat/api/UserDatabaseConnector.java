@@ -128,5 +128,20 @@ public interface UserDatabaseConnector {
      */
     public AssessorDetails createNewAssessor(final String type, final String value, final String description)
             throws SurveySystemConnectorException;
+    
+    /**
+     * Adds a new survey token to the database.
+     * @param token The token to be added.
+     * @param entityId The entity identifier.
+     * @param assessorId The assessor identifier.
+     * @param principalId The principal identifier for the one instantiating the operation.
+     * @param sid The survey identifier.
+     * @param eventId The event identifier related to this operation. If set to 0, new is created and returned by
+     * this method.
+     * @return The event identifier related to this operation.
+     * @throws SurveySystemConnectorException If the operation fails.
+     */
+    public int addSurveyToken(final String token, final String entityId, final String assessorId, 
+            final String principalId, final String sid, final int eventId) throws SurveySystemConnectorException;
 
 }

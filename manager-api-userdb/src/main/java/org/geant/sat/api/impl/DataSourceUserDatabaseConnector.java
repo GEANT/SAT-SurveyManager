@@ -348,6 +348,38 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
         }
         return null;
     }
+    
+    /** {@inheritDoc} */
+    @Override
+    public synchronized int addSurveyToken(final String token, final String entityId, final String assessorId, 
+            final String principalId, final String sid, int eventId) throws SurveySystemConnectorException {
+        int id;
+        if (eventId == 0) {
+            final Long currentMax = getCurrentMaxEventId();
+            if (currentMax == null) {
+                log.trace("No previous value found for eventId, starting from 1");
+                id = 1;
+            } else {
+                log.trace("Existing maximum value for eventId is {}", currentMax.intValue());
+                id = currentMax.intValue() + 1;
+            }
+        } else {
+            id = eventId;
+        }
+        // TODO Auto-generated method stub
+        return id;
+    }
+
+    /**
+     * Solves the current biggest event identifier value in the assessor survey token table.
+     * @return The current biggest eevent identifier value.
+     */
+    protected Long getCurrentMaxEventId() {
+        log.debug("Solving the current maximum event ID");
+        final String query = "SELECT max(" + DataModelUtil.COLUMN_NAME_ASSESSOR_SURVEY_EVENT_ID + ") from " 
+                + DataModelUtil.TABLE_NAME_ASSESSOR_TOKEN;
+        return jdbcTemplate.query(query, new IdExtractor("max(eventId)"));
+    }
 
     /**
      * Updates the user details in the database. A new one is created if no

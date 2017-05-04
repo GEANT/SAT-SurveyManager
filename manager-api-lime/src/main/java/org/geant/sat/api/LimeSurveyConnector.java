@@ -402,7 +402,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
      * @return The generated token.
      * @throws SurveySystemConnectorException If the token cannot be generated.
      */
-    public String addToken(final String sid) throws SurveySystemConnectorException {
+    public String generateToken(final String sid) throws SurveySystemConnectorException {
         log.debug("Adding a token {} for survey {}", sid);
         final String contents = getContents("add_participants", "\"" + sid + "\", [{\"firstname\":\"" 
                 + PARTICIPANT_FIRST_NAME + "\",\"lastname\":\"" + PARTICIPANT_LAST_NAME + "\",\"email\":\""

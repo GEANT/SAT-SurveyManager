@@ -84,4 +84,12 @@ public interface SurveySystemConnector {
      */
     public ListSurveyTokensResponse listSurveyTokens(final String sid) throws SurveySystemConnectorException;
     
+    /**
+     * Creates a new token in the survey system for one survey.
+     * @param sid The survey identifier.
+     * @return In the case of any errors.
+     * @throws SurveySystemConnectorException
+     */
+    public String generateToken(final String sid) throws SurveySystemConnectorException;
+    
 }

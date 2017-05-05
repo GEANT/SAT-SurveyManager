@@ -90,6 +90,11 @@ See LICENSE.txt file in the root directory of this repository for the copyright/
                 <version>${simpleframework.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.5</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

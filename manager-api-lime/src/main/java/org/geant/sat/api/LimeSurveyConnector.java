@@ -403,13 +403,13 @@ public class LimeSurveyConnector implements SurveySystemConnector {
      * @throws SurveySystemConnectorException If the token cannot be generated.
      */
     public String generateToken(final String sid) throws SurveySystemConnectorException {
-        log.debug("Adding a token {} for survey {}", sid);
-        final String contents = getContents("add_participants", "\"" + sid + "\", [{\"firstname\":\"" 
+        log.debug("Adding a token for survey {}", sid);
+        final AddParticipantsResponse response = getContents("add_participants", "\"" + sid + "\", [{\"firstname\":\"" 
                 + PARTICIPANT_FIRST_NAME + "\",\"lastname\":\"" + PARTICIPANT_LAST_NAME + "\",\"email\":\""
-                + PARTICIPANT_EMAIL + "\",\"emailstatus\":\"OK\"}]", true);
-        log.trace("Contents {}", contents);
+                + PARTICIPANT_EMAIL + "\",\"emailstatus\":\"OK\"}]", new AddParticipantsResponse(), true);
+/*        log.trace("Contents {}", contents);
         Gson gson = new Gson();
-        final AddParticipantsResponse response = gson.fromJson(contents, AddParticipantsResponse.class);
+        final AddParticipantsResponse response = gson.fromJson(contents, AddParticipantsResponse.class);*/
         if (response.getErrorMessage() != null) {
             log.error("Found error from Limesurvey API: {}", response.getErrorMessage());
             throw new SurveySystemConnectorException(response.getErrorMessage());
@@ -593,21 +593,31 @@ public class LimeSurveyConnector implements SurveySystemConnector {
      */
     protected <T extends AbstractLimeSurveyResponse> T getContents(final String method, final String params, T response,
             boolean retry) throws SurveySystemConnectorException {
+        log.trace("Starting getContents for response type {}", response.getClass());
         final String contents = getContents(method, params, true);
         final Gson gson = new Gson();
         try {
             return (T) gson.fromJson(contents, response.getClass());
         } catch (JsonSyntaxException e) {
-            log.debug("Could not encode response from contents {}", contents);
+            log.debug("Could not encode response {} from contents {}", response.getClass(), contents);
             try {
                 final LimeStatusResponse statusResponse = gson.fromJson(contents, LimeStatusResponse.class);
                 final Status status = statusResponse.getStatus();
-                if (retry && status != null && status.getStatus() != null) {
-                    updateSessionKey();
-                    return getContents(method, params, response, false);
+                if (status != null) {
+                    final String errorMessage = status.getStatus();
+                    if (retry && "Invalid session key".equals(errorMessage)) {
+                        log.debug("Session key was expired, trying again after authentication");
+                        updateSessionKey();
+                        return getContents(method, params, response, false);
+                    } else {
+                        log.debug("Parsed error {} from the response", errorMessage);
+                        response.setErrorMessage(errorMessage);
+                    }
+                } else {
+                    log.error("Could not parse status or {} from {}", response.getClass(), contents);
                 }
             } catch (JsonSyntaxException jse) {
-                log.debug("Could not find status from contents {}", contents);
+                log.error("Could not parse the contents {}", contents);
             }
         }
         return null;
@@ -635,8 +645,15 @@ public class LimeSurveyConnector implements SurveySystemConnector {
         return getContents("list_users", null, new ListLimeUsersResponse(), true);
     }
     
+    /**
+     * Fetches the participants from Limesurvey for the given survey.
+     * @param sid The survey identifier.
+     * @return The list of participants.
+     * @throws SurveySystemConnectorException If the operation fails.
+     */
     protected ListParticipantsResponse fetchParticipants(final String sid) throws SurveySystemConnectorException {
-        return getContents("list_participants", sid + ", 0, " + maxParticipants + ", false, [ \"completed\" ]", new ListParticipantsResponse(), true);
+        return getContents("list_participants", sid + ", 0, " + maxParticipants + ", false, [ \"completed\" ]", 
+                new ListParticipantsResponse(), true);
     }
 
     /**
@@ -818,7 +835,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
             log.trace("Successfully parsed error message {}", errorMessage);
             return new SurveySystemConnectorException(errorMessage);
         } catch (JsonSyntaxException e) {
-            log.trace("Could not error message from the contents", e);
+            log.trace("Could not error message from the contents {}", contents, e);
             return new SurveySystemConnectorException(e);
         }
     }

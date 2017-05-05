@@ -30,10 +30,12 @@ package org.geant.sat.api;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
+import org.geant.sat.api.dto.SurveyDetails;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -79,8 +81,22 @@ public class LimeSurveyConnectorTest {
         matchers.put("get_survey_properties", JSON_FILE_DIRECTORY + "surveyProperties.json");
         LimeSurveyConnector connector = initializeMockConnector(matchers);
         ListAllSurveysResponse response = connector.listSurveys();
+        Assert.assertNotNull(response);
         Assert.assertNull(response.getErrorMessage());
-        Assert.assertEquals(response.getSurveys().size(), 1);
+        List<SurveyDetails> surveys = response.getSurveys();
+        Assert.assertEquals(surveys.size(), 1);
+        SurveyDetails details = surveys.get(0);
+        Assert.assertTrue(details.getActive());
+        Assert.assertEquals(details.getOwner(), "teppo@yliopisto.fi");
+        Assert.assertEquals(details.getSid(), "245629");
+        Assert.assertEquals(details.getTitle(), "API PoC");
+    }
+
+    @Test
+    public void testListSurveysInvalidKey() throws Exception {
+        LimeSurveyConnector connector = initializeMockConnector(JSON_FILE_DIRECTORY + "invalidSessionKey.json");
+        Assert.assertNotNull(connector.listSurveys().getErrorMessage());
+        
     }
     
     protected LimeSurveyConnector initializeMockConnector(final String resultJson) throws Exception {

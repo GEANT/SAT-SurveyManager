@@ -24,6 +24,7 @@ See LICENSE.txt file in the root directory of this repository for the copyright/
         <testng.version>6.11</testng.version>
         <joda.version>2.9.7</joda.version>
         <checkstyle.version>2.17</checkstyle.version>
+        <simpleframework.version>6.0.1</simpleframework.version>
         <checkstyle.configLocation>
             conf/checkstyle.xml
         </checkstyle.configLocation>
@@ -70,6 +71,24 @@ See LICENSE.txt file in the root directory of this repository for the copyright/
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${joda.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>2.7.22</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.simpleframework</groupId>
+                <artifactId>simple-http</artifactId>
+                <version>${simpleframework.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.simpleframework</groupId>
+                <artifactId>simple-transport</artifactId>
+                <version>${simpleframework.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

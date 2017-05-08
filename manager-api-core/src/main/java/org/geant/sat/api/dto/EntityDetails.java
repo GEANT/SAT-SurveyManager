@@ -152,4 +152,10 @@ public class EntityDetails {
         this.sids = newSids;
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        return "Entity (id: '" + getId() + "', name: '" + getName() + "', description: '" + getDescription()
+            + "', creator: '" + getCreator() + "', assessors: " + getAssessors() + ", sids: " + getSids() + ").";
+    }
 }

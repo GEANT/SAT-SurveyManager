@@ -93,8 +93,7 @@ public class RestController {
     private AssessorNotifier assessorNotifier;
     
     /** The configured entity importers. */
-    @Resource
-    @Qualifier("surveyManager.api.entityImporters")
+    @Resource(name="surveyManager.api.entityImporters")
     private List<EntityImporter> entityImporters;
 
     /** Class logger. */

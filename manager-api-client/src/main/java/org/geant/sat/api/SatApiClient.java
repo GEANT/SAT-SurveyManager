@@ -66,6 +66,7 @@ import org.geant.sat.api.dto.SurveyResponse;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
 import org.geant.sat.api.dto.ListAssessorsResponse;
 import org.geant.sat.api.dto.ListEntitiesResponse;
+import org.geant.sat.api.dto.ListEntityImportersResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.geant.sat.api.dto.UserResponse;
 import org.slf4j.Logger;
@@ -195,6 +196,15 @@ public class SatApiClient {
     public ListAssessorsResponse getAssessors() {
         final String url = apiBaseUrl + "/assessors";
         return getResponseWithGet(url, ListAssessorsResponse.class);
+    }
+    
+    /**
+     * Get all the configured entity importers from the Survey Manager API.
+     * @return All the configured entity importers from the Survey Manager API.
+     */
+    public ListEntityImportersResponse getEntityImporters() {
+        final String url = apiBaseUrl + "/entityImporters";
+        return getResponseWithGet(url, ListEntityImportersResponse.class);
     }
 
     /**

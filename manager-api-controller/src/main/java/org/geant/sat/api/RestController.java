@@ -40,6 +40,7 @@ import org.geant.sat.api.dto.AnswersResponse;
 import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.AssessorResponse;
 import org.geant.sat.api.dto.EntityDetails;
+import org.geant.sat.api.dto.EntityImporterDetails;
 import org.geant.sat.api.dto.EntityResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
 import org.geant.sat.api.dto.ListSurveyTokensResponse;
@@ -55,6 +56,7 @@ import org.geant.sat.api.dto.TokenDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
 import org.geant.sat.api.dto.ListAssessorsResponse;
 import org.geant.sat.api.dto.ListEntitiesResponse;
+import org.geant.sat.api.dto.ListEntityImportersResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.geant.sat.api.dto.UserResponse;
 import org.slf4j.Logger;
@@ -261,7 +263,32 @@ public class RestController {
         }
         return new ResponseEntity<ListAssessorsResponse>(response, HttpStatus.OK);
     }
-    
+
+    /**
+     * Lists all configured entity importers.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return All the configured entity importers.
+     */
+    @RequestMapping(value = "/entityImporters", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<ListEntityImportersResponse> listEntityImporters(
+            HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        log.debug("Starting /entityImporters endpoint");
+        final ListEntityImportersResponse response = new ListEntityImportersResponse();
+        if (entityImporters == null) {
+            log.error("The list of entity importers is null!");
+            response.setErrorMessage("Error while reading the entity importers");
+            return new ResponseEntity<ListEntityImportersResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        for (final EntityImporter importer : entityImporters) {
+            final EntityImporterDetails details = new EntityImporterDetails();
+            details.setId(importer.getId());
+            details.setInputDescription(importer.getInputDescription());
+            response.getEntityImporters().add(details);
+        }
+        return new ResponseEntity<ListEntityImportersResponse>(response, HttpStatus.OK);
+    }
+
     /**
      * Lists all tokens.
      * @param httpRequest The HTTP servlet request.

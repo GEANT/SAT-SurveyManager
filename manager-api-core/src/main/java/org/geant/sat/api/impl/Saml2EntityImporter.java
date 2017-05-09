@@ -77,6 +77,12 @@ public class Saml2EntityImporter implements EntityImporter {
     /** The Open SAML parser pool. */
     private ParserPool parserPool;
     
+    /** The identifier for the entity importer. */
+    private String id;
+    
+    /** The description for the input field. */
+    private String inputDescription;
+    
     /**
      * Constructor.
      */
@@ -212,5 +218,33 @@ public class Saml2EntityImporter implements EntityImporter {
         }
         log.debug("Could not find description");
         return feedDescription;
-    }    
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getId() {
+        return id;
+    }
+    
+    /**
+     * Set the identifier for the entity importer.
+     * @param newId What to set.
+     */
+    public void setId(final String newId) {
+        id = newId;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getInputDescription() {
+        return inputDescription;
+    }
+    
+    /**
+     * Set the description for the input field.
+     * @param description What to set.
+     */
+    public void setInputDescription(final String description) {
+        inputDescription = description;
+    }
 }

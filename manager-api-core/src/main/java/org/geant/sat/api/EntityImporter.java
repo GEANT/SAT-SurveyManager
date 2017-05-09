@@ -34,6 +34,18 @@ import org.geant.sat.api.dto.ListEntitiesResponse;
  * This interface is for importing entities to SAT.
  */
 public interface EntityImporter {
+    
+    /**
+     * Get the identifier for the entity importer.
+     * @return The identifier for the entity importer.
+     */
+    public String getId();
+    
+    /**
+     * Get the description for the input field.
+     * @return The description for the input field.
+     */
+    public String getInputDescription();
 
     /**
      * Previews the given input, without storing it to the database and/or survey system.

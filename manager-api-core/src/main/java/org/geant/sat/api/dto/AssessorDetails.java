@@ -128,6 +128,10 @@ public class AssessorDetails {
         this.typeDescription = newTypeDescription;
     }
     
-    
-    
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        return "Assessor (id: '" + getId() + "', value: '" + getValue() + "', description: '" + getDescription()
+            + "', type: '" + getType() + "', typeDescription: '" + getTypeDescription() + "').";
+    }
 }

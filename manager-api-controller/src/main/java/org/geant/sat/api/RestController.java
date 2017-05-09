@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -92,7 +93,7 @@ public class RestController {
     private AssessorNotifier assessorNotifier;
     
     /** The configured entity importers. */
-    @Autowired
+    @Resource
     @Qualifier("surveyManager.api.entityImporters")
     private List<EntityImporter> entityImporters;
 

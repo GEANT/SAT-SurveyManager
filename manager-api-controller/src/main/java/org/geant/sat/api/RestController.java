@@ -90,6 +90,11 @@ public class RestController {
     @Autowired
     @Qualifier("surveyManager.api.assessorNotifier")
     private AssessorNotifier assessorNotifier;
+    
+    /** The configured entity importers. */
+    @Autowired
+    @Qualifier("surveyManager.api.entityImporters")
+    private List<EntityImporter> entityImporters;
 
     /** Class logger. */
     private final Logger log = LoggerFactory.getLogger(RestController.class);

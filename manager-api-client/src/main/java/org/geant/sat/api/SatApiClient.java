@@ -313,6 +313,23 @@ public class SatApiClient {
         final String encoded = gson.toJson(details);
         return getResponseWithPost(url, encoded, RoleResponse.class, true);
     }
+    
+    /**
+     * Previews the entities imported from the given importer and input.
+     * @param entityImporterId The entity importer to be used.
+     * @param input The input for the entity importer.
+     * @param creator The author for the importer.
+     * @param inputId The identifier to be used with the entity importer.
+     * @return The list of entities parsed from the given input.
+     */
+    public ListEntitiesResponse previewEntities(final String entityImporterId, final Object input, 
+            final String inputId, final String creator) {
+        final String url = apiBaseUrl + "/previewEntities/" + entityImporterId 
+                + "?inputId=" + inputId + "&creator=" + creator;
+        final Gson gson = new Gson();
+        final String encoded = gson.toJson(input);
+        return getResponseWithPost(url, encoded, ListEntitiesResponse.class, true);
+    }
 
     /**
      * Update existing user in the Survey Manager API.

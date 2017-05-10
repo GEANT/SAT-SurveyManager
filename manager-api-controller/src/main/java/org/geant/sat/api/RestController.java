@@ -288,6 +288,43 @@ public class RestController {
         }
         return new ResponseEntity<ListEntityImportersResponse>(response, HttpStatus.OK);
     }
+    
+    /**
+     * Previews the entities imported from the given importer and input.
+     * @param entityImporterId The entity importer to be used.
+     * @param body The input for the entity importer.
+     * @param creator The author for the importer.
+     * @param inputId The identifier to be used with the entity importer.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return The list of entities parsed from the given input.
+     */
+    @RequestMapping(headers = {
+    "content-type=application/json" }, value = "/previewEntities/{entityImporterId:.+}", method = RequestMethod.POST)
+    public @ResponseBody ResponseEntity<ListEntitiesResponse> previewEntities(
+            @PathVariable String entityImporterId, @RequestBody Object body,
+            @RequestParam(value = "creator", required = true) String creator,
+            @RequestParam(value = "inputId", required = true) String inputId,
+            HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        log.debug("Starting /previewEntities endpoint with id={} and creator={}", entityImporterId, creator);
+        if (entityImporters != null && !entityImporters.isEmpty()) {
+            for (final EntityImporter entityImporter : entityImporters) {
+                if (entityImporterId.equals(entityImporter.getId())) {
+                    log.debug("Matching entity importer found for {}", entityImporterId);
+                    final ListEntitiesResponse response = entityImporter.preview(inputId, body, creator);
+                    if (response.getErrorMessage() == null) {
+                        return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.OK);
+                    }
+                    return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.BAD_GATEWAY);
+                }
+            }
+        }
+        log.error("No corresponding entity importer found, list is empty? {}", entityImporters == null 
+                && entityImporters.isEmpty());
+        final ListEntitiesResponse emptyResponse = new ListEntitiesResponse();
+        emptyResponse.setErrorMessage("No corresponding entity importer found");
+        return new ResponseEntity<ListEntitiesResponse>(emptyResponse, HttpStatus.BAD_GATEWAY);
+    }
 
     /**
      * Lists all tokens.

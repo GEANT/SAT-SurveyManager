@@ -76,6 +76,8 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
     private Grid<EntityDetails> entities;
     /** Add entity button. */
     private Button addEntity;
+    /** import entity button. */
+    private Button importEntity;
 
     /**
      * Constructor. Populates the table with survey information.
@@ -89,6 +91,8 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         Design.read(this);
         addEntity.setCaption(getString("lang.button.add"));
         addEntity.addClickListener(this::addEntity);
+        importEntity.setCaption(getString("lang.button.import"));
+        importEntity.addClickListener(this::importEntity);
         entities.setSelectionMode(SelectionMode.NONE);
         List<EntityDetails> details = getFilteredEntityDetails();
         if (details != null && details.size() > 0) {
@@ -381,6 +385,23 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
             assessors += AssessorDetailsHelper.display(assDetails) + " ";
         }
         return assessors;
+    }
+
+    /**
+     * Import entity click handler - creates a sub window for user to enter the
+     * data.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void importEntity(ClickEvent event) {
+
+        // We create a simple window for user to enter entity information
+        Window subWindowNewEntity = new EntityImporterWindow(getMainUI());
+        subWindowNewEntity.setModal(true);
+        subWindowNewEntity.setWidth("50%");
+        getMainUI().addWindow(subWindowNewEntity);
+
     }
 
 }

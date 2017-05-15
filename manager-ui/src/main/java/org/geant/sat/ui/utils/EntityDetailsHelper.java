@@ -53,12 +53,15 @@ public class EntityDetailsHelper implements ItemCaptionGenerator<EntityDetails> 
      * @return entity display string.
      */
     public static String display(EntityDetails item) {
-        return "(" + item.getId() + ")" + item.getName();
+        if (item.getId() != null) {
+            return "(" + item.getId() + ")" + item.getName();
+        }
+        return item.getName();
     }
 
     /**
-     * Creates a new set of entity details by picking entitities from "pool"
-     * based on "selection". The entities are picked by matching id.
+     * Creates a new set of entity details by picking entities from "pool" based
+     * on "selection". The entities are picked by matching id.
      * 
      * @param pool
      *            to pick entities from

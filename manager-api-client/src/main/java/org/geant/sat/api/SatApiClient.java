@@ -29,6 +29,7 @@ package org.geant.sat.api;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -325,10 +326,24 @@ public class SatApiClient {
     public ListEntitiesResponse previewEntities(final String entityImporterId, final Object input, 
             final String inputId, final String creator) {
         final String url = apiBaseUrl + "/previewEntities/" + entityImporterId 
-                + "?inputId=" + inputId + "&creator=" + creator;
+                + "?inputId=" + encodeUrlParam(inputId) + "&creator=" + encodeUrlParam(creator);
         final Gson gson = new Gson();
         final String encoded = gson.toJson(input);
         return getResponseWithPost(url, encoded, ListEntitiesResponse.class, true);
+    }
+    
+    /**
+     * Encodes the given string to be used in a URL parameter.
+     * @param param The string to be encoded.
+     * @return The URL encoded version of the given parameter.
+     */
+    protected String encodeUrlParam(final String param) {
+        try {
+            return URLEncoder.encode(param, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            log.error("Could not URL encode {} with UTF-8 encoding", param);
+            return param;
+        }
     }
 
     /**

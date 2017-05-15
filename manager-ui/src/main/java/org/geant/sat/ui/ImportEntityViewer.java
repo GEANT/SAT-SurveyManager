@@ -28,7 +28,8 @@
 
 package org.geant.sat.ui;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListEntitiesResponse;
@@ -48,10 +49,9 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.declarative.Design;
 
 /** class implementing view to importing entities */
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "rawtypes" })
 @DesignRoot
-public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements ClickListener,
-        ValueChangeListener<Set<EntityDetails>> {
+public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements ClickListener, ValueChangeListener {
 
     /** Logger. */
     private static final Logger LOG = LoggerFactory.getLogger(ImportEntityViewer.class);
@@ -62,10 +62,14 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
     private Button fetchContent;
     /** ui component to select entities fetched from import url. */
     private ListSelect<EntityDetails> selectedEntity;
+    /** List of entities to be selected. */
+    private List<EntityDetails> entities;
     /** button to cancel import. */
     private Button cancelButton;
     /** button to import selection. */
     private Button importButton;
+    /** field to filter entities by */
+    private TextField entityFilter;
 
     /**
      * We use now hard coded identifier for saml. TODO replace with final
@@ -79,6 +83,7 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
      * @param ui
      *            main ui class.
      */
+    @SuppressWarnings("unchecked")
     ImportEntityViewer(MainUI ui) {
         super(ui);
         Design.read(this);
@@ -90,6 +95,9 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
         importButton.setCaption(getString("lang.importer.button.import"));
         importButton.addClickListener(this);
         importButton.setEnabled(false);
+        entityFilter.setCaption(getString("lang.importer.text.filter"));
+        entityFilter.addValueChangeListener(this);
+        entityFilter.setEnabled(false);
         selectedEntity.setCaption(getString("lang.importer.selection"));
         selectedEntity.setItemCaptionGenerator(new EntityDetailsHelper());
         selectedEntity.addValueChangeListener(this);
@@ -109,15 +117,35 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
             if (!verifySuccess(resp)) {
                 return;
             }
-            selectedEntity.setItems(resp.getEntities());
+            entities = resp.getEntities();
+            selectedEntity.setItems(entities);
+            entityFilter.setEnabled(entities.size() > 0);
+            entityFilter.setValue("");
             return;
         }
-
     }
 
     @Override
-    public void valueChange(ValueChangeEvent<Set<EntityDetails>> event) {
-        importButton.setEnabled(selectedEntity.getSelectedItems().size() > 0);
+    public void valueChange(ValueChangeEvent event) {
+        if (event.getSource() == fetchContent) {
+            importButton.setEnabled(selectedEntity.getSelectedItems().size() > 0);
+            return;
+        }
+        if (event.getSource() == entityFilter) {
+            if (entityFilter.getValue().trim().length() == 0) {
+                selectedEntity.setItems(entities);
+                return;
+            }
+            List<EntityDetails> filteredEntities = new ArrayList<EntityDetails>();
+            LOG.debug("filtering by string {}", entityFilter.getValue().trim());
+            for (EntityDetails details : entities) {
+                if (details.getName().contains(entityFilter.getValue().trim())) {
+                    filteredEntities.add(details);
+                }
+            }
+            LOG.debug("filtering decreased entities from {} to {}", entities.size(), filteredEntities.size());
+            selectedEntity.setItems(filteredEntities);
+        }
 
     }
 

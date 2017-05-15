@@ -193,26 +193,27 @@ public class Saml2EntityImporter implements EntityImporter {
         if (ssoDescriptor != null) {
             final Extensions extensions = ssoDescriptor.getExtensions();
             log.trace("Extensions {}", extensions);
-            for (final XMLObject child : extensions.getOrderedChildren()) {
-                if (child != null && child.getElementQName().equals(UIInfo.DEFAULT_ELEMENT_NAME)) {
-                    log.debug("Found UI!");
-                    List<Description> descriptions = ((UIInfo) child).getDescriptions();
-                    if (descriptions != null && !descriptions.isEmpty()) {
-                        for (final Description description : descriptions) {
-                            if (description.getXMLLang() != null 
-                                    && description.getXMLLang().equals(DEFAULT_UI_INFO_LANGUAGE)) {
-                                log.debug("Found English description {}", description.getValue());
-                                return description.getValue() + " (" + feedDescription + ")";
+            if (extensions != null) {
+                for (final XMLObject child : extensions.getOrderedChildren()) {
+                    if (child != null && child.getElementQName().equals(UIInfo.DEFAULT_ELEMENT_NAME)) {
+                        log.debug("Found UI!");
+                        List<Description> descriptions = ((UIInfo) child).getDescriptions();
+                        if (descriptions != null && !descriptions.isEmpty()) {
+                            for (final Description description : descriptions) {
+                                if (description.getXMLLang() != null 
+                                        && description.getXMLLang().equals(DEFAULT_UI_INFO_LANGUAGE)) {
+                                    log.debug("Found English description {}", description.getValue());
+                                    return description.getValue() + " (" + feedDescription + ")";
+                                }
                             }
+                            log.debug("Did not find English description, returning {}", descriptions.get(0).getValue());
+                            return descriptions.get(0).getValue() + " (" + feedDescription + ")";
+                        } else {
+                            log.debug("List of descriptions is empty");
                         }
-                        log.debug("Did not find English description, returning {}", descriptions.get(0).getValue());
-                        return descriptions.get(0).getValue() + " (" + feedDescription + ")";
                     } else {
-                        log.debug("List of descriptions is empty");
+                        log.debug("Skipping {}", child.getElementQName());
                     }
-                } else {
-                    log.debug("Skipping {}", child.getElementQName());
-                    
                 }
             }
         }

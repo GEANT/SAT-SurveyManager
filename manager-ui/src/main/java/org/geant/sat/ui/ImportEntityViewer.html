@@ -1,15 +1,11 @@
-<vaadin-vertical-layout overflow: auto>
+<vaadin-vertical-layout width-full overflow: auto>
  <vaadin-horizontal-layout width-full>
-   <vaadin-text-field _id="metadataUrl" width-full :bottom :left />
+   <vaadin-text-field _id="metadataUrl" width-full :expand  :bottom :left />
    <vaadin-button _id="fetchContent" :bottom :left />
  </vaadin-horizontal-layout>
- <vaadin-horizontal-layout >
-   <vaadin-vertical-layout :top :width-full>
-     <vaadin-text-field _id="entityFilter" :top :left  />
-     <vaadin-list-select _id="selectedEntity"  :width-full :left />
-     <vaadin-button _id="addToSelectionButton" :left />
-   </vaadin-vertical-layout>
-   <vaadin-grid _id="importEntities" :top :left />
+ <vaadin-text-field _id="availableEntitiesFilter" :left  />
+ <vaadin-list-select _id="availableEntities"  width-full :expand :left />
+ <vaadin-button _id="addToBasketButton" :left />
  </vaadin-horizontal-layout>
  <vaadin-horizontal-layout>
    <vaadin-button _id="cancelButton" :left />

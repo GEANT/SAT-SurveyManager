@@ -53,6 +53,9 @@ public class AssessorDetailsHelper implements ItemCaptionGenerator<AssessorDetai
      * @return assessor display string.
      */
     public static String display(AssessorDetails item) {
+        if (item.getId() == null){
+            return item.getValue();
+        }
         return "(" + item.getId() + ")" + item.getValue();
     }
 

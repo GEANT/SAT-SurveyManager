@@ -29,10 +29,14 @@
 package org.geant.sat.ui;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListEntitiesResponse;
+import org.geant.sat.ui.utils.AssessorDetailsHelper;
 import org.geant.sat.ui.utils.EntityDetailsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +47,12 @@ import com.vaadin.data.HasValue.ValueChangeListener;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Grid;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.declarative.Design;
+import com.vaadin.ui.renderers.ButtonRenderer;
 
 /** class implementing view to importing entities */
 @SuppressWarnings({ "serial", "rawtypes" })
@@ -66,10 +72,16 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
     private List<EntityDetails> entities;
     /** button to cancel import. */
     private Button cancelButton;
-    /** button to import selection. */
+    /** button to import. */
     private Button importButton;
+    /** button to select from entities for import. */
+    private Button addToSelectionButton;
     /** field to filter entities by */
     private TextField entityFilter;
+    /** Table showing entities. */
+    private Grid<EntityDetails> importEntities;
+    /** List of selected entities. */
+    Set<EntityDetails> entitiesSelection = new HashSet<EntityDetails>();
 
     /**
      * We use now hard coded identifier for saml. TODO replace with final
@@ -95,12 +107,47 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
         importButton.setCaption(getString("lang.importer.button.import"));
         importButton.addClickListener(this);
         importButton.setEnabled(false);
+        addToSelectionButton.setCaption(getString("lang.importer.button.selectforimport"));
+        addToSelectionButton.addClickListener(this);
+        addToSelectionButton.setEnabled(false);
         entityFilter.setCaption(getString("lang.importer.text.filter"));
         entityFilter.addValueChangeListener(this);
         entityFilter.setEnabled(false);
-        selectedEntity.setCaption(getString("lang.importer.selection"));
+        selectedEntity.setCaption(getString("lang.importer.selection.available"));
         selectedEntity.setItemCaptionGenerator(new EntityDetailsHelper());
         selectedEntity.addValueChangeListener(this);
+        importEntities.setCaption(getString("lang.importer.selection"));
+        importEntities.setItems(entitiesSelection);
+        importEntities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
+        importEntities.addColumn(EntityDetails::getDescription)
+                .setCaption(getString("lang.entities.column.description")).setHidable(true).setHidden(true);
+        importEntities.addColumn(entitydetail -> getAssessors(entitydetail))
+                .setCaption(getString("lang.entities.column.assesors")).setHidable(true).setHidden(true);
+        importEntities.addColumn(entitiesSelection -> getString("lang.button.remove"), new ButtonRenderer(
+                clickEvent -> {
+                    entitiesSelection.remove(clickEvent.getItem());
+                    importEntities.setItems(entitiesSelection);
+                    importButton.setEnabled(entitiesSelection.size() > 0);
+                }));
+
+    }
+
+    /**
+     * Generates cell containing assessor information.
+     * 
+     * @param details
+     *            of the entity
+     * @return assessors
+     */
+    private String getAssessors(EntityDetails details) {
+        String assessors = "";
+        if (details == null || details.getAssessors() == null) {
+            return assessors;
+        }
+        for (AssessorDetails assDetails : details.getAssessors()) {
+            assessors += AssessorDetailsHelper.display(assDetails) + " ";
+        }
+        return assessors;
     }
 
     @Override
@@ -109,11 +156,15 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
             ((Window) getParent()).close();
             return;
         }
+        if (event.getButton() == importButton) {
+            ((Window) getParent()).close();
+            return;
+        }
         if (event.getButton() == fetchContent) {
             String url = metadataUrl.getValue();
-            LOG.debug("About to import entities from url " + url);
-            ListEntitiesResponse resp = getMainUI().getSatApiClient().previewEntities(samlIdentifier, url,
-                    "imported_entity", getMainUI().getUser().getDetails().getPrincipalId());
+            LOG.debug("About to read entities from url " + url);
+            ListEntitiesResponse resp = getMainUI().getSatApiClient().previewEntities(samlIdentifier, url, url,
+                    getMainUI().getUser().getDetails().getPrincipalId());
             if (!verifySuccess(resp)) {
                 return;
             }
@@ -123,12 +174,18 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
             entityFilter.setValue("");
             return;
         }
+        if (event.getButton() == addToSelectionButton) {
+            LOG.debug("Adding items " + selectedEntity.getSelectedItems());
+            entitiesSelection.addAll(selectedEntity.getSelectedItems());
+            importEntities.setItems(entitiesSelection);
+            importButton.setEnabled(entitiesSelection.size() > 0);
+        }
     }
 
     @Override
     public void valueChange(ValueChangeEvent event) {
-        if (event.getSource() == fetchContent) {
-            importButton.setEnabled(selectedEntity.getSelectedItems().size() > 0);
+        if (event.getSource() == selectedEntity) {
+            addToSelectionButton.setEnabled(selectedEntity.getSelectedItems().size() > 0);
             return;
         }
         if (event.getSource() == entityFilter) {

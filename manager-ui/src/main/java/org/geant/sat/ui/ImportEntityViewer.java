@@ -191,7 +191,7 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
         }
         if (event.getButton() == addToBasketButton) {
             LOG.debug("Adding items " + availableEntities.getSelectedItems());
-            if (entitiesSelection.size() == 0) {
+            if (availableEntities.getSelectedItems().size() == 0) {
                 return;
             }
             entitiesSelection.addAll(availableEntities.getSelectedItems());

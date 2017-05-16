@@ -397,10 +397,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
     private void importEntity(ClickEvent event) {
 
         // We create a simple window for user to enter entity information
-        Window subWindowNewEntity = new EntityImporterWindow(getMainUI());
-        subWindowNewEntity.setModal(true);
-        subWindowNewEntity.setWidth("50%");
-        getMainUI().addWindow(subWindowNewEntity);
+        getMainUI().addWindow(new EntityImporterWindow(getMainUI()));
 
     }
 

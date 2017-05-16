@@ -49,6 +49,7 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.ListSelect;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.declarative.Design;
@@ -67,19 +68,23 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
     /** button for fetching import entity list from import url. */
     private Button fetchContent;
     /** ui component to select entities fetched from import url. */
-    private ListSelect<EntityDetails> selectedEntity;
+    private ListSelect<EntityDetails> availableEntities;
     /** List of entities to be selected. */
-    private List<EntityDetails> entities;
+    private List<EntityDetails> availableEntitiesSource;
     /** button to cancel import. */
     private Button cancelButton;
     /** button to import. */
     private Button importButton;
     /** button to select from entities for import. */
-    private Button addToSelectionButton;
+    private Button addToBasketButton;
     /** field to filter entities by */
-    private TextField entityFilter;
-    /** Table showing entities. */
-    private Grid<EntityDetails> importEntities;
+    private TextField availableEntitiesFilter;
+
+    /** Grid showing entities. */
+    private Object basketEntities;
+    /** handle for helper window. */
+    private Object basketWindow;
+
     /** List of selected entities. */
     Set<EntityDetails> entitiesSelection = new HashSet<EntityDetails>();
 
@@ -99,6 +104,7 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
     ImportEntityViewer(MainUI ui) {
         super(ui);
         Design.read(this);
+        basketEntities = new Grid<EntityDetails>();
         metadataUrl.setCaption(getString("lang.importer.text.url"));
         fetchContent.setCaption(getString("lang.importer.button.fetch"));
         fetchContent.addClickListener(this);
@@ -107,26 +113,28 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
         importButton.setCaption(getString("lang.importer.button.import"));
         importButton.addClickListener(this);
         importButton.setEnabled(false);
-        addToSelectionButton.setCaption(getString("lang.importer.button.selectforimport"));
-        addToSelectionButton.addClickListener(this);
-        addToSelectionButton.setEnabled(false);
-        entityFilter.setCaption(getString("lang.importer.text.filter"));
-        entityFilter.addValueChangeListener(this);
-        entityFilter.setEnabled(false);
-        selectedEntity.setCaption(getString("lang.importer.selection.available"));
-        selectedEntity.setItemCaptionGenerator(new EntityDetailsHelper());
-        selectedEntity.addValueChangeListener(this);
-        importEntities.setCaption(getString("lang.importer.selection"));
-        importEntities.setItems(entitiesSelection);
-        importEntities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
-        importEntities.addColumn(EntityDetails::getDescription)
+        addToBasketButton.setCaption(getString("lang.importer.button.selectforimport"));
+        addToBasketButton.addClickListener(this);
+        addToBasketButton.setEnabled(false);
+        availableEntitiesFilter.setCaption(getString("lang.importer.text.filter"));
+        availableEntitiesFilter.addValueChangeListener(this);
+        availableEntitiesFilter.setEnabled(false);
+        availableEntities.setCaption(getString("lang.importer.selection.available"));
+        availableEntities.setItemCaptionGenerator(new EntityDetailsHelper());
+        availableEntities.addValueChangeListener(this);
+        ((Grid<EntityDetails>) basketEntities).setCaption(getString("lang.importer.selection"));
+        ((Grid<EntityDetails>) basketEntities).setItems(entitiesSelection);
+        ((Grid<EntityDetails>) basketEntities).addColumn(EntityDetails::getName).setCaption(
+                getString("lang.entities.column.name"));
+        ((Grid<EntityDetails>) basketEntities).addColumn(EntityDetails::getDescription)
                 .setCaption(getString("lang.entities.column.description")).setHidable(true).setHidden(true);
-        importEntities.addColumn(entitydetail -> getAssessors(entitydetail))
+        ((Grid<EntityDetails>) basketEntities).addColumn(entitydetail -> getAssessors(entitydetail))
                 .setCaption(getString("lang.entities.column.assesors")).setHidable(true).setHidden(true);
-        importEntities.addColumn(entitiesSelection -> getString("lang.button.remove"), new ButtonRenderer(
-                clickEvent -> {
+        ((Grid<EntityDetails>) basketEntities).addColumn(entitiesSelection -> getString("lang.button.remove"),
+                new ButtonRenderer(clickEvent -> {
+                    Notification.show(getString("lang.itemremoved"), Notification.Type.HUMANIZED_MESSAGE);
                     entitiesSelection.remove(clickEvent.getItem());
-                    importEntities.setItems(entitiesSelection);
+                    ((Grid<EntityDetails>) basketEntities).setItems(entitiesSelection);
                     importButton.setEnabled(entitiesSelection.size() > 0);
                 }));
 
@@ -150,13 +158,20 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
         return assessors;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void buttonClick(ClickEvent event) {
         if (event.getButton() == cancelButton) {
+            if (basketWindow != null) {
+                ((Window) basketWindow).close();
+            }
             ((Window) getParent()).close();
             return;
         }
         if (event.getButton() == importButton) {
+            if (basketWindow != null) {
+                ((Window) basketWindow).close();
+            }
             ((Window) getParent()).close();
             return;
         }
@@ -168,40 +183,54 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
             if (!verifySuccess(resp)) {
                 return;
             }
-            entities = resp.getEntities();
-            selectedEntity.setItems(entities);
-            entityFilter.setEnabled(entities.size() > 0);
-            entityFilter.setValue("");
+            availableEntitiesSource = resp.getEntities();
+            availableEntities.setItems(availableEntitiesSource);
+            availableEntitiesFilter.setEnabled(availableEntitiesSource.size() > 0);
+            availableEntitiesFilter.setValue("");
             return;
         }
-        if (event.getButton() == addToSelectionButton) {
-            LOG.debug("Adding items " + selectedEntity.getSelectedItems());
-            entitiesSelection.addAll(selectedEntity.getSelectedItems());
-            importEntities.setItems(entitiesSelection);
-            importButton.setEnabled(entitiesSelection.size() > 0);
+        if (event.getButton() == addToBasketButton) {
+            LOG.debug("Adding items " + availableEntities.getSelectedItems());
+            if (entitiesSelection.size() == 0) {
+                return;
+            }
+            entitiesSelection.addAll(availableEntities.getSelectedItems());
+            ((Grid<EntityDetails>) basketEntities).setItems(entitiesSelection);
+            if (basketWindow == null) {
+                basketWindow = new Window();
+                ((Window) basketWindow).setClosable(false);
+                ((Window) basketWindow).setCaption(getString("lang.importer.basket"));
+                ((Grid<EntityDetails>) basketEntities).setWidth("100%");
+                ((Window) basketWindow).setWidth("50%");
+                ((Window) basketWindow).setContent(((Grid<EntityDetails>) basketEntities));
+                getMainUI().addWindow((Window) basketWindow);
+            }
+            Notification.show(getString("lang.itemadded"), Notification.Type.HUMANIZED_MESSAGE);
+            importButton.setEnabled(true);
         }
     }
 
     @Override
     public void valueChange(ValueChangeEvent event) {
-        if (event.getSource() == selectedEntity) {
-            addToSelectionButton.setEnabled(selectedEntity.getSelectedItems().size() > 0);
+        if (event.getSource() == availableEntities) {
+            addToBasketButton.setEnabled(availableEntities.getSelectedItems().size() > 0);
             return;
         }
-        if (event.getSource() == entityFilter) {
-            if (entityFilter.getValue().trim().length() == 0) {
-                selectedEntity.setItems(entities);
+        if (event.getSource() == availableEntitiesFilter) {
+            if (availableEntitiesFilter.getValue().trim().length() == 0) {
+                availableEntities.setItems(availableEntitiesSource);
                 return;
             }
             List<EntityDetails> filteredEntities = new ArrayList<EntityDetails>();
-            LOG.debug("filtering by string {}", entityFilter.getValue().trim());
-            for (EntityDetails details : entities) {
-                if (details.getName().contains(entityFilter.getValue().trim())) {
+            LOG.debug("filtering by string {}", availableEntitiesFilter.getValue().trim());
+            for (EntityDetails details : availableEntitiesSource) {
+                if (details.getName().contains(availableEntitiesFilter.getValue().trim())) {
                     filteredEntities.add(details);
                 }
             }
-            LOG.debug("filtering decreased entities from {} to {}", entities.size(), filteredEntities.size());
-            selectedEntity.setItems(filteredEntities);
+            LOG.debug("filtering decreased entities from {} to {}", availableEntitiesSource.size(),
+                    filteredEntities.size());
+            availableEntities.setItems(filteredEntities);
         }
 
     }

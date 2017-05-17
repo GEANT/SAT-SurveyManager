@@ -427,19 +427,24 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                     log.debug("New assessor with id={} stored", created.getId());
                 }
             }
-            for (final EntityDetails existing : existingEntities) {
-                String existingId = null;
+            String existingId = null;
+            final Iterator<EntityDetails> iterator = existingEntities.iterator();
+            while (iterator.hasNext() && existingId == null) {
+                final EntityDetails existing = iterator.next();
                 //TODO: comparison only with creator name + entity name
                 if (existing.getCreator().equals(entity.getCreator()) && existing.getName().equals(entity.getName())) {
                     existingId = existing.getId();
                     log.debug("Existing entity with id {} matched", existingId);
                     entity.setSids(existing.getSids());
                 } else {
-                    final EntityDetails created = createNewEntity(entity.getName(), entity.getDescription(), 
-                            entity.getCreator());
-                    entity.setId(created.getId());
-                    log.debug("New entity with id={} stored", created.getId());
+                    log.trace("Existing entity {} did not match with {}", existing.getName(), entity.getName());
                 }
+            }
+            if (existingId == null) {
+                final EntityDetails created = createNewEntity(entity.getName(), entity.getDescription(), 
+                        entity.getCreator());
+                entity.setId(created.getId());
+                log.debug("New entity with id={} stored", created.getId());                
             }
         }
         return entities;

@@ -204,7 +204,7 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
             }
         }
         for (final AssessorDetails details : assessors) {
-            if (!DataModelUtil.assessorListContains(storedAssessors, details.getId())) {
+            if (details.getId() != null && !DataModelUtil.assessorListContains(storedAssessors, details.getId())) {
                 log.debug("Adding assessor ID {} for entity {}", details.getId(), id);
                 final String update = "INSERT INTO " + DataModelUtil.TABLE_NAME_ENTITY_ASSESSOR + " ("
                         + DataModelUtil.COLUMN_NAME_ENTITY_ASSESSOR_ENTITY_ID + ", " 

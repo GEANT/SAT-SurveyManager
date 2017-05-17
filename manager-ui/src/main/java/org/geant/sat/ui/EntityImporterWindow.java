@@ -37,7 +37,6 @@ public class EntityImporterWindow extends Window {
         setContent(new ImportEntityViewer(ui));
         setClosable(false);
         setWidth("35%");
-        setHeight("50%");
     }
 
 }

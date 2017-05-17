@@ -410,8 +410,8 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                 final Iterator<AssessorDetails> iterator = existingAssessors.iterator();
                 while (iterator.hasNext() && existingId == null) {
                     final AssessorDetails existing = iterator.next();
-                    if (existing.getType().equals(assessor.getType()) 
-                            && existing.getValue().equals(assessor.getValue())) {
+                    if (existing.getType().equalsIgnoreCase(assessor.getType()) 
+                            && existing.getValue().equalsIgnoreCase(assessor.getValue())) {
                         existingId = existing.getId();
                         log.debug("Existing assessor with id {} matched", existingId);
                     } else {
@@ -433,7 +433,8 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
             while (iterator.hasNext() && existingId == null) {
                 final EntityDetails existing = iterator.next();
                 //TODO: comparison only with creator name + entity name
-                if (existing.getCreator().equals(entity.getCreator()) && existing.getName().equals(entity.getName())) {
+                if (existing.getCreator().equalsIgnoreCase(entity.getCreator()) 
+                        && existing.getName().equalsIgnoreCase(entity.getName())) {
                     existingId = existing.getId();
                     log.debug("Existing entity with id {} matched", existingId);
                     entity.setSids(existing.getSids());

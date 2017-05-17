@@ -229,21 +229,53 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
             return;
         }
         if (event.getSource() == availableEntitiesFilter) {
-            if (availableEntitiesFilter.getValue().trim().length() == 0) {
-                availableEntities.setItems(availableEntitiesSource);
-                return;
-            }
-            List<EntityDetails> filteredEntities = new ArrayList<EntityDetails>();
-            LOG.debug("filtering by string {}", availableEntitiesFilter.getValue().trim());
-            for (EntityDetails details : availableEntitiesSource) {
-                if (details.getName().contains(availableEntitiesFilter.getValue().trim())) {
-                    filteredEntities.add(details);
-                }
-            }
-            LOG.debug("filtering decreased entities from {} to {}", availableEntitiesSource.size(),
-                    filteredEntities.size());
-            availableEntities.setItems(filteredEntities);
+            performFiltering();
         }
+
+    }
+
+    /**
+     * Filters lists of available entities based on each of the substrings
+     * contained either in entity name, description or assessor value.
+     */
+    private void performFiltering() {
+        String filterValue = availableEntitiesFilter.getValue().trim();
+        if (filterValue.length() == 0) {
+            availableEntities.setItems(availableEntitiesSource);
+            return;
+        }
+        List<EntityDetails> filteredEntities = new ArrayList<EntityDetails>();
+        LOG.debug("filtering by string {}", filterValue);
+        String[] searchValues = filterValue.toLowerCase().split(" ");
+        // each of the values must be found
+        for (EntityDetails details : availableEntitiesSource) {
+            boolean notFound = false;
+            outerloop: for (String searchValue : searchValues) {
+                if (details.getName().toLowerCase().contains(searchValue)) {
+                    LOG.debug("Match found in entity {}", details.getName());
+                    continue;
+                }
+                if (details.getDescription().toLowerCase().contains(searchValue)) {
+                    LOG.debug("Match found for entity {} in entity description {}", details.getName(),
+                            details.getDescription());
+                    continue;
+                }
+                for (AssessorDetails ad : details.getAssessors()) {
+                    if (ad.getValue().toLowerCase().contains(searchValue)) {
+                        LOG.debug("Match found for entity {} in assessor {}", details.getName(), ad.getValue());
+                        continue outerloop;
+                    }
+                }
+                notFound = true;
+                break;
+
+            }
+            if (!notFound) {
+                filteredEntities.add(details);
+            }
+        }
+        LOG.debug("filtering decreased entities from {} to {}", availableEntitiesSource.size(), filteredEntities.size());
+        availableEntities.setItems(filteredEntities);
 
     }
 

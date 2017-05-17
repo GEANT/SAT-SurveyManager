@@ -37,7 +37,6 @@ import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListEntitiesResponse;
 import org.geant.sat.ui.utils.AssessorDetailsHelper;
-import org.geant.sat.ui.utils.EntityDetailsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +47,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Grid;
-import com.vaadin.ui.ListSelect;
+import com.vaadin.ui.Grid.SelectionMode;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.Window;
@@ -69,7 +68,7 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
     /** button for fetching import entity list from import url. */
     private Button fetchContent;
     /** ui component to select entities fetched from import url. */
-    private ListSelect<EntityDetails> availableEntities;
+    private Grid<EntityDetails> availableEntities;
     /** List of entities to be selected. */
     private List<EntityDetails> availableEntitiesSource;
     /** button to cancel import. */
@@ -107,7 +106,7 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
     ImportEntityViewer(MainUI ui) {
         super(ui);
         Design.read(this);
-        basketEntities = new Grid<EntityDetails>();
+        // Initialize buttons and text fields
         metadataUrl.setCaption(getString("lang.importer.text.url"));
         fetchContent.setCaption(getString("lang.importer.button.fetch"));
         fetchContent.addClickListener(this);
@@ -125,9 +124,19 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
         availableEntitiesFilter.setCaption(getString("lang.importer.text.filter"));
         availableEntitiesFilter.addValueChangeListener(this);
         availableEntitiesFilter.setEnabled(false);
+        // Initialize entity selection grid
         availableEntities.setCaption(getString("lang.importer.selection.available"));
-        availableEntities.setItemCaptionGenerator(new EntityDetailsHelper());
-        availableEntities.addValueChangeListener(this);
+        availableEntities.setSelectionMode(SelectionMode.MULTI);
+        availableEntities.addSelectionListener(event -> {
+            addToBasketButton.setEnabled(event.getAllSelectedItems().size() > 0);
+        });
+        availableEntities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
+        availableEntities.addColumn(EntityDetails::getDescription)
+                .setCaption(getString("lang.entities.column.description")).setHidable(true);
+        availableEntities.addColumn(entitydetail -> getAssessors(entitydetail))
+                .setCaption(getString("lang.entities.column.assesors")).setHidable(true).setHidden(true);
+        // Initialize entity basket grid
+        basketEntities = new Grid<EntityDetails>();
         ((Grid<EntityDetails>) basketEntities).setCaption(getString("lang.importer.selection"));
         ((Grid<EntityDetails>) basketEntities).setItems(entitiesSelection);
         ((Grid<EntityDetails>) basketEntities).addColumn(EntityDetails::getName).setCaption(
@@ -224,10 +233,6 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
 
     @Override
     public void valueChange(ValueChangeEvent event) {
-        if (event.getSource() == availableEntities) {
-            addToBasketButton.setEnabled(availableEntities.getSelectedItems().size() > 0);
-            return;
-        }
         if (event.getSource() == availableEntitiesFilter) {
             performFiltering();
         }
@@ -255,13 +260,13 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
                     LOG.debug("Match found in entity {}", details.getName());
                     continue;
                 }
-                if (details.getDescription().toLowerCase().contains(searchValue)) {
+                if (details.getDescription() != null && details.getDescription().toLowerCase().contains(searchValue)) {
                     LOG.debug("Match found for entity {} in entity description {}", details.getName(),
                             details.getDescription());
                     continue;
                 }
                 for (AssessorDetails ad : details.getAssessors()) {
-                    if (ad.getValue().toLowerCase().contains(searchValue)) {
+                    if (ad.getValue() != null && ad.getValue().toLowerCase().contains(searchValue)) {
                         LOG.debug("Match found for entity {} in assessor {}", details.getName(), ad.getValue());
                         continue outerloop;
                     }

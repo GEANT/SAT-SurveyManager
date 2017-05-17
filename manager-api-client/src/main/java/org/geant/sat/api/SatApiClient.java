@@ -389,10 +389,10 @@ public class SatApiClient {
      * @return The details for the updated survey.
      */
     public SurveyResponse updateSurvey(final SurveyDetails details) {
-    	final String url = apiBaseUrl + "/surveys/" + details.getSid();
-    	final Gson gson = new Gson();
-    	final String encoded = gson.toJson(details);
-    	return getResponseWithPut(url, encoded, SurveyResponse.class, true);
+        final String url = apiBaseUrl + "/surveys/" + details.getSid();
+        final Gson gson = new Gson();
+        final String encoded = gson.toJson(details);
+        return getResponseWithPut(url, encoded, SurveyResponse.class, true);
     }
     
     /**
@@ -524,6 +524,7 @@ public class SatApiClient {
      * @param clazz The class for the expected response.
      * @param contents The contents of the response.
      * @param backup The backup error message if no error was found.
+     * @param <T> The expected response type.
      * @return The error message.
      */
     protected <T extends AbstractConnectorResponse> String getErrorMessage(Class<T> clazz, final String contents, 

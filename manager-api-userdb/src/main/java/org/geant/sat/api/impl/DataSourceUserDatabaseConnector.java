@@ -425,6 +425,7 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                             assessor.getDescription());
                     entity.getAssessors().set(i, created);
                     log.debug("New assessor with id={} stored", created.getId());
+                    existingAssessors.add(created);
                 }
             }
             String existingId = null;
@@ -444,7 +445,8 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                 final EntityDetails created = createNewEntity(entity.getName(), entity.getDescription(), 
                         entity.getCreator());
                 entity.setId(created.getId());
-                log.debug("New entity with id={} stored", created.getId());                
+                log.debug("New entity with id={} stored", created.getId()); 
+                existingEntities.add(created);
             }
         }
         return entities;

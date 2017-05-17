@@ -563,13 +563,13 @@ public class RestController {
      * @return The details for the created entity.
      */
     @RequestMapping(headers = {
-            "content-type=application/x-www-form-urlencoded" }, value = "/entities", method = RequestMethod.POST)
+            "content-type=application/x-www-form-urlencoded" }, value = "/entity", method = RequestMethod.POST)
     public @ResponseBody ResponseEntity<EntityResponse> insertEntity(
             @RequestParam(value = "name", required = true) String name,
             @RequestParam(value = "description", required = true) String description,
             @RequestParam(value = "creator", required = true) String creator,
             HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-        log.debug("Starting /entities POST endpoint with name={}", name);
+        log.debug("Starting /entity POST endpoint with name={}", name);
         final EntityResponse response = new EntityResponse();
         try {
             final EntityDetails entity = userDbConnector.createNewEntity(name, description, creator);
@@ -580,6 +580,31 @@ public class RestController {
             return new ResponseEntity<EntityResponse>(response, HttpStatus.BAD_GATEWAY);
         }
         return new ResponseEntity<EntityResponse>(response, HttpStatus.OK);
+    }
+    
+    /**
+     * Stores the given entities, if they don't exist.
+     * @param body The list of entities to be stored.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return The list of the entities. The entities and assessors that have id set were created to the database,
+     * others were already existing and were not modified in the database.
+     */
+    @RequestMapping(headers = {
+            "content-type=application/json" }, value = "/entities", method = RequestMethod.POST)
+    public @ResponseBody ResponseEntity<ListEntitiesResponse> storeEntities(@RequestBody List<EntityDetails> body, 
+            HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        log.debug("Starting /entities POST endpoint");
+        final ListEntitiesResponse response = new ListEntitiesResponse(); 
+        try {
+            final List<EntityDetails> entities = userDbConnector.storeEntities(body);
+            response.setEntities(entities);
+        } catch (SurveySystemConnectorException e) {
+            log.error("Could not store the given entities to the database", e);
+            response.setErrorMessage(e.getMessage());
+            return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        return new ResponseEntity<ListEntitiesResponse>(response, HttpStatus.OK);
     }
     
     /**

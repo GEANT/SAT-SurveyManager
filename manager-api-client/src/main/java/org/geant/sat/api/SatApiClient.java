@@ -216,7 +216,7 @@ public class SatApiClient {
      * @return The details for the entity.
      */
     public EntityResponse createEntity(final String name, final String description, final String creator) {
-        final String url = apiBaseUrl + "/entities";
+        final String url = apiBaseUrl + "/entity";
         final HttpPost method = new HttpPost(url);
         final List<NameValuePair> postParameters = new ArrayList<>();
         postParameters.add(new BasicNameValuePair("name", name));
@@ -230,6 +230,18 @@ public class SatApiClient {
         }
         method.addHeader("content-type", "application/x-www-form-urlencoded");
         return getResponse(method, EntityResponse.class, true);
+    }
+
+    /**
+     * Stores the given entities to the Survey Manager database.
+     * @param entities The entities to be stored.
+     * @return The details for the stored entities.
+     */
+    public ListEntitiesResponse storeEntities(final List<EntityDetails> entities) {
+        final String url = apiBaseUrl + "/entities";
+        final Gson gson = new Gson();
+        final String encoded = gson.toJson(entities);
+        return getResponseWithPost(url, encoded, ListEntitiesResponse.class, true);
     }
     
     /**

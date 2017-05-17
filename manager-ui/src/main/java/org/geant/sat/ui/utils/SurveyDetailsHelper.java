@@ -48,7 +48,7 @@ public class SurveyDetailsHelper implements ItemCaptionGenerator<SurveyDetails> 
      * @return survey display string.
      */
     public static String display(SurveyDetails item) {
-        return "(" + item.getSid() + ")" + item.getTitle();
+        return item.getSid() + ": " + item.getTitle();
     }
 
 }

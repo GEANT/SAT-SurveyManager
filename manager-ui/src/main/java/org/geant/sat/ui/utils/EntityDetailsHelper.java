@@ -31,15 +31,42 @@ package org.geant.sat.ui.utils;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.geant.sat.api.dto.EntityDetails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.vaadin.data.provider.DataProvider;
+import com.vaadin.data.provider.DataProviderListener;
+import com.vaadin.data.provider.Query;
+import com.vaadin.shared.Registration;
 import com.vaadin.ui.ItemCaptionGenerator;
 
 /** class implementing helpers for assessor details. */
 @SuppressWarnings("serial")
-public class EntityDetailsHelper implements ItemCaptionGenerator<EntityDetails> {
+public class EntityDetailsHelper implements ItemCaptionGenerator<EntityDetails>, DataProvider<EntityDetails,String> {
 
+    /** Logger. */
+    private static final Logger LOG = LoggerFactory.getLogger(EntityDetailsHelper.class);
+    
+    private List<EntityDetails> details;
+    
+    /**
+     * Constructor.
+     */
+    public EntityDetailsHelper(){
+        
+    }
+    
+    /**
+     * Constructor for dataprovider case.
+     * @param dtls entity details.
+     */
+    public EntityDetailsHelper(List<EntityDetails> dtls){
+        details=dtls;
+    }
+    
     @Override
     public String apply(EntityDetails item) {
         return display(item);
@@ -54,7 +81,7 @@ public class EntityDetailsHelper implements ItemCaptionGenerator<EntityDetails> 
      */
     public static String display(EntityDetails item) {
         if (item.getId() != null) {
-            return "(" + item.getId() + ")" + item.getName();
+            return item.getId() + ": " + item.getName();
         }
         return item.getName();
     }
@@ -80,6 +107,44 @@ public class EntityDetailsHelper implements ItemCaptionGenerator<EntityDetails> 
         }
         return result;
 
+    }
+
+    /**
+     * 
+     * experimental code ->
+     * not used.
+     */
+    
+    @Override
+    public boolean isInMemory() {
+        return true;
+    }
+
+    @Override
+    public int size(Query<EntityDetails, String> query) {
+        return details.size();
+    }
+
+    @Override
+    public Stream<EntityDetails> fetch(Query<EntityDetails, String> query) {
+        LOG.debug("query "+query.getOffset()+"/"+query.getLimit());
+        return details.subList(query.getOffset(),query.getOffset()+(query.getLimit()-1)).stream();
+    }
+
+    @Override
+    public void refreshItem(EntityDetails item) {
+        LOG.warn("refreshItem not implemented");
+    }
+
+    @Override
+    public void refreshAll() {
+        LOG.warn("refreshAll not implemented");
+    }
+
+    @Override
+    public Registration addDataProviderListener(DataProviderListener<EntityDetails> listener) {
+        LOG.warn("addDataProviderListener not implemented");
+        return null;
     }
 
 }

@@ -54,6 +54,7 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.declarative.Design;
 import com.vaadin.ui.renderers.ButtonRenderer;
+import com.vaadin.ui.themes.ValoTheme;
 
 /** class implementing view to importing entities */
 @SuppressWarnings({ "serial", "rawtypes" })
@@ -77,6 +78,8 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
     private Button importButton;
     /** button to select from entities for import. */
     private Button addToBasketButton;
+    /** button to open view of entities to import. */
+    private Button viewBasketButton;
     /** field to filter entities by */
     private TextField availableEntitiesFilter;
 
@@ -116,6 +119,9 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
         addToBasketButton.setCaption(getString("lang.importer.button.selectforimport"));
         addToBasketButton.addClickListener(this);
         addToBasketButton.setEnabled(false);
+        viewBasketButton.setVisible(false);
+        viewBasketButton.addStyleName(ValoTheme.BUTTON_LINK);
+        viewBasketButton.addClickListener(this);
         availableEntitiesFilter.setCaption(getString("lang.importer.text.filter"));
         availableEntitiesFilter.addValueChangeListener(this);
         availableEntitiesFilter.setEnabled(false);
@@ -136,6 +142,7 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
                     entitiesSelection.remove(clickEvent.getItem());
                     ((Grid<EntityDetails>) basketEntities).setItems(entitiesSelection);
                     importButton.setEnabled(entitiesSelection.size() > 0);
+                    viewBasketButton.setVisible(entitiesSelection.size() > 0);
                 }));
 
     }
@@ -161,6 +168,17 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
     @SuppressWarnings("unchecked")
     @Override
     public void buttonClick(ClickEvent event) {
+        if (event.getButton() == viewBasketButton) {
+            if (basketWindow == null) {
+                basketWindow = new Window();
+                ((Window) basketWindow).setClosable(false);
+                ((Window) basketWindow).setCaption(getString("lang.importer.basket"));
+                ((Grid<EntityDetails>) basketEntities).setWidth("100%");
+                ((Window) basketWindow).setWidth("50%");
+                ((Window) basketWindow).setContent(((Grid<EntityDetails>) basketEntities));
+                getMainUI().addWindow((Window) basketWindow);
+            }
+        }
         if (event.getButton() == cancelButton) {
             if (basketWindow != null) {
                 ((Window) basketWindow).close();
@@ -196,17 +214,11 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
             }
             entitiesSelection.addAll(availableEntities.getSelectedItems());
             ((Grid<EntityDetails>) basketEntities).setItems(entitiesSelection);
-            if (basketWindow == null) {
-                basketWindow = new Window();
-                ((Window) basketWindow).setClosable(false);
-                ((Window) basketWindow).setCaption(getString("lang.importer.basket"));
-                ((Grid<EntityDetails>) basketEntities).setWidth("100%");
-                ((Window) basketWindow).setWidth("50%");
-                ((Window) basketWindow).setContent(((Grid<EntityDetails>) basketEntities));
-                getMainUI().addWindow((Window) basketWindow);
-            }
             Notification.show(getString("lang.itemadded"), Notification.Type.HUMANIZED_MESSAGE);
             importButton.setEnabled(true);
+            viewBasketButton.setVisible(true);
+            viewBasketButton.setCaption(String.format(getString("lang.importer.button.viewbasket"),
+                    entitiesSelection.size()));
         }
     }
 

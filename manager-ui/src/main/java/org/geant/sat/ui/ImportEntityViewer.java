@@ -196,6 +196,11 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
             return;
         }
         if (event.getButton() == importButton) {
+            ListEntitiesResponse resp = getMainUI().getSatApiClient().storeEntities(
+                    new ArrayList<EntityDetails>(entitiesSelection));
+            if (!verifySuccess(resp)) {
+                return;
+            }
             if (basketWindow != null) {
                 ((Window) basketWindow).close();
             }

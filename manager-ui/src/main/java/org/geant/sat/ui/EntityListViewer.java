@@ -31,7 +31,6 @@ package org.geant.sat.ui;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
 import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
@@ -40,12 +39,10 @@ import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.ui.utils.AssessorDetailsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.vaadin.annotations.DesignRoot;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Grid;
-import com.vaadin.ui.Grid.Column;
 import com.vaadin.ui.Grid.ItemClick;
 import com.vaadin.ui.Grid.SelectionMode;
 import com.vaadin.ui.Notification;
@@ -98,7 +95,6 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         if (details != null && details.size() > 0) {
             entities.setItems(details);
             entities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
-            entities.addColumn(EntityDetails::getDescription).setCaption(getString("lang.entities.column.description"));
             entities.addColumn(
                     entitydetail -> getString("lang.entities.button.schedule"),
                     new ButtonRenderer(clickEvent -> {
@@ -107,19 +103,16 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
                         surveySchedulerWindow.setModal(true);
                         ui.addWindow(surveySchedulerWindow);
                     })).setCaption(getString("lang.entities.column.schedule"));
-            entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"));
-            Column<EntityDetails, String> column = entities.addColumn(entitydetail -> getSurveys(entitydetail))
-                    .setCaption(getString("lang.entities.column.sid"));
-            column.setId(COLUMN_SIDS);
-            column.setHidable(true);
-            column.setHidden(true);
-            column.setStyleGenerator(entitydetail -> "active");
-            column = entities.addColumn(entitydetail -> getAssessors(entitydetail)).setCaption(
-                    getString("lang.entities.column.assesors"));
-            column.setId(COLUMN_ASSESSORS);
-            column.setHidable(true);
-            column.setHidden(true);
-            column.setStyleGenerator(entitydetail -> "active");
+            entities.addColumn(EntityDetails::getDescription).setCaption(getString("lang.entities.column.description"))
+                    .setHidable(true);
+            entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"))
+                    .setHidable(true).setHidden(true);
+            entities.addColumn(entitydetail -> getSurveys(entitydetail))
+                    .setCaption(getString("lang.entities.column.sid")).setId(COLUMN_SIDS).setHidable(true)
+                    .setHidden(true).setStyleGenerator(entitydetail -> "active");
+            entities.addColumn(entitydetail -> getAssessors(entitydetail))
+                    .setCaption(getString("lang.entities.column.assesors")).setId(COLUMN_ASSESSORS).setHidable(true)
+                    .setHidden(true).setStyleGenerator(entitydetail -> "active");
             entities.addItemClickListener(event -> handleEvent(event));
             entities.setHeightByRows(details.size() > 0 ? details.size() : 1);
         } else {

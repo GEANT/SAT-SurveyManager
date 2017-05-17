@@ -132,14 +132,18 @@ public class Saml2EntityImporter implements EntityImporter {
             entity.setName(descriptor.getEntityID());
             final List<XMLObject> children = descriptor.getOrderedChildren();
             final IDPSSODescriptor idpDescriptor = descriptor.getIDPSSODescriptor(SAMLConstants.SAML20P_NS);
+            final String feedDescription = "Imported from " + id;
             if (idpDescriptor != null) {
                 log.trace("Found IDP descriptor");
-                entity.setDescription(getUIDescription(idpDescriptor, id));
+                entity.setDescription(getUIDescription(idpDescriptor, feedDescription));
             }
             final SPSSODescriptor spDescriptor = descriptor.getSPSSODescriptor(SAMLConstants.SAML20P_NS);
             if (spDescriptor != null) {
                 log.trace("Found SP descriptor");
-                entity.setDescription(getUIDescription(spDescriptor, id));
+                entity.setDescription(getUIDescription(spDescriptor, feedDescription));
+            }
+            if (entity.getDescription() == null) {
+                entity.setDescription(feedDescription);
             }
             for (final XMLObject child : children) {
                 if (child != null) {
@@ -185,11 +189,11 @@ public class Saml2EntityImporter implements EntityImporter {
      * Gets the (preferably English) UI description from the given {@link SSODescriptor}. If no English description
      * was not found, then first description is returned.
      * @param ssoDescriptor The descriptor whose description is to be returned.
-     * @param id The identifier for the metadata feed.
+     * @param feedDescription The metadata feed description to be appended after the UI description, or simply as the
+     * description if UI description was not found.
      * @return The (preferably English) UI description of the given descriptor, or empty String if none was found.
      */
-    protected String getUIDescription(final SSODescriptor ssoDescriptor, final String id) {
-        final String feedDescription = "Imported from " + id;
+    protected String getUIDescription(final SSODescriptor ssoDescriptor, final String feedDescription) {
         if (ssoDescriptor != null) {
             final Extensions extensions = ssoDescriptor.getExtensions();
             log.trace("Extensions {}", extensions);

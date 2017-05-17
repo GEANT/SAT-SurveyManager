@@ -421,8 +421,8 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                 }
                 if (existingId == null) {
                     //TODO: hardcoded to the email type
-                    final AssessorDetails created = createNewAssessor("email", assessor.getType(), 
-                            assessor.getValue());
+                    final AssessorDetails created = createNewAssessor("email", assessor.getValue(), 
+                            assessor.getDescription());
                     entity.getAssessors().set(i, created);
                     log.debug("New assessor with id={} stored", created.getId());
                 }

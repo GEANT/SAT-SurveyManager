@@ -33,6 +33,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -392,6 +393,56 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
         final String query = DataModelUtil.buildSurveyTokensQuery(sid);
         log.trace("Built query {}", query);
         return jdbcTemplate.query(query, new TokenDetailsExtractor());
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public synchronized List<EntityDetails> storeEntities(final List<EntityDetails> entities) 
+            throws SurveySystemConnectorException {
+        log.debug("Starting to store {} entities", entities.size());
+        final List<AssessorDetails> existingAssessors = listAssessors().getAssessors();
+        final List<EntityDetails> existingEntities = listEntities().getEntities();
+        for (final EntityDetails entity : entities) {
+            log.debug("Analyzing entity {} with name {}", entity.getId(), entity.getName());
+            for (int i = 0; i < entity.getAssessors().size(); i++) {
+                final AssessorDetails assessor = entity.getAssessors().get(i);
+                String existingId = null;
+                final Iterator<AssessorDetails> iterator = existingAssessors.iterator();
+                while (iterator.hasNext() && existingId == null) {
+                    final AssessorDetails existing = iterator.next();
+                    if (existing.getType().equals(assessor.getType()) 
+                            && existing.getValue().equals(assessor.getValue())) {
+                        existingId = existing.getId();
+                        log.debug("Existing assessor with id {} matched", existingId);
+                    } else {
+                        log.trace("Existing assessor {} did not match with {}", existing.getValue(), 
+                                assessor.getValue());
+                    }
+                }
+                if (existingId == null) {
+                    //TODO: hardcoded to the email type
+                    final AssessorDetails created = createNewAssessor("email", assessor.getType(), 
+                            assessor.getValue());
+                    entity.getAssessors().set(i, created);
+                    log.debug("New assessor with id={} stored", created.getId());
+                }
+            }
+            for (final EntityDetails existing : existingEntities) {
+                String existingId = null;
+                //TODO: comparison only with creator name + entity name
+                if (existing.getCreator().equals(entity.getCreator()) && existing.getName().equals(entity.getName())) {
+                    existingId = existing.getId();
+                    log.debug("Existing entity with id {} matched", existingId);
+                    entity.setSids(existing.getSids());
+                } else {
+                    final EntityDetails created = createNewEntity(entity.getName(), entity.getDescription(), 
+                            entity.getCreator());
+                    entity.setId(created.getId());
+                    log.debug("New entity with id={} stored", created.getId());
+                }
+            }
+        }
+        return entities;
     }
     
     /**

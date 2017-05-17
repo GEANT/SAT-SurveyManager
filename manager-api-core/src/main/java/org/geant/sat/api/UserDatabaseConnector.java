@@ -27,6 +27,8 @@
  */
 package org.geant.sat.api;
 
+import java.util.List;
+
 import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListAssessorsResponse;
@@ -98,6 +100,14 @@ public interface UserDatabaseConnector {
      */
     public EntityDetails createNewEntity(final String name, final String description, final String creator)
             throws SurveySystemConnectorException;
+    
+    /**
+     * Stores the given list of entities. If an entity already exists, it won't be replaced, but it won't be 
+     * @param entities The list of entities to be stored.
+     * @return The list of entities that were stored: already existing entities are not included in this list.
+     * @throws SurveySystemConnectorException If the operation fails.
+     */
+    public List<EntityDetails> storeEntities(final List<EntityDetails> entities) throws SurveySystemConnectorException;
     
     /**
      * Updates an existing entity with the given details.

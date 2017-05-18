@@ -31,6 +31,7 @@ package org.geant.sat.ui;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
 import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
@@ -39,6 +40,7 @@ import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.ui.utils.AssessorDetailsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.vaadin.annotations.DesignRoot;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -50,6 +52,7 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.TwinColSelect;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.declarative.Design;
 import com.vaadin.ui.renderers.ButtonRenderer;
 
@@ -93,32 +96,30 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         entities.setSelectionMode(SelectionMode.NONE);
         List<EntityDetails> details = getFilteredEntityDetails();
         if (details != null && details.size() > 0) {
+            // entities.setDataProvider(new EntityDetailsHelper(details));
             entities.setItems(details);
-            entities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
-            entities.addColumn(
-                    entitydetail -> getString("lang.entities.button.schedule"),
-                    new ButtonRenderer(clickEvent -> {
-                        SurveySchedulerWindow surveySchedulerWindow = new SurveySchedulerWindow(ui,
-                                (EntityDetails) clickEvent.getItem());
-                        surveySchedulerWindow.setModal(true);
-                        ui.addWindow(surveySchedulerWindow);
-                    })).setCaption(getString("lang.entities.column.schedule"));
-            entities.addColumn(EntityDetails::getDescription).setCaption(getString("lang.entities.column.description"))
-                    .setHidable(true);
-            entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"))
-                    .setHidable(true).setHidden(true);
-            entities.addColumn(entitydetail -> getSurveys(entitydetail))
-                    .setCaption(getString("lang.entities.column.sid")).setId(COLUMN_SIDS).setHidable(true)
-                    .setHidden(true).setStyleGenerator(entitydetail -> "active");
-            entities.addColumn(entitydetail -> getAssessors(entitydetail))
-                    .setCaption(getString("lang.entities.column.assesors")).setId(COLUMN_ASSESSORS).setHidable(true)
-                    .setHidden(true).setStyleGenerator(entitydetail -> "active");
-            entities.addItemClickListener(event -> handleEvent(event));
-            entities.setHeightByRows(details.size() > 0 ? details.size() : 1);
-        } else {
-            LOG.warn("no survey details found");
-            entities.setHeightByRows(1);
         }
+        entities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
+        entities.addColumn(
+                entitydetail -> getString("lang.entities.button.schedule"),
+                new ButtonRenderer(clickEvent -> {
+                    SurveySchedulerWindow surveySchedulerWindow = new SurveySchedulerWindow(ui,
+                            (EntityDetails) clickEvent.getItem());
+                    surveySchedulerWindow.setModal(true);
+                    ui.addWindow(surveySchedulerWindow);
+                })).setCaption(getString("lang.entities.column.schedule"));
+        entities.addColumn(EntityDetails::getDescription).setCaption(getString("lang.entities.column.description"))
+                .setHidable(true);
+        entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"))
+                .setHidable(true).setHidden(true);
+        entities.addColumn(entitydetail -> getSurveys(entitydetail)).setCaption(getString("lang.entities.column.sid"))
+                .setId(COLUMN_SIDS).setHidable(true).setHidden(true).setStyleGenerator(entitydetail -> "active");
+        entities.addColumn(entitydetail -> getAssessors(entitydetail))
+                .setCaption(getString("lang.entities.column.assesors")).setId(COLUMN_ASSESSORS).setHidable(true)
+                .setHidden(true).setStyleGenerator(entitydetail -> "active");
+        entities.addItemClickListener(event -> handleEvent(event));
+        entities.setHeightByRows(details.size() > 0 ? details.size() : 1);
+
     }
 
     /**
@@ -390,7 +391,17 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
     private void importEntity(ClickEvent event) {
 
         // We create a simple window for user to enter entity information
-        getMainUI().addWindow(new EntityImporterWindow(getMainUI()));
+        Window importerWindow = new EntityImporterWindow(getMainUI());
+        importerWindow.addCloseListener(new Window.CloseListener() {
+            @Override
+            public void windowClose(CloseEvent e) {
+                List<EntityDetails> refreshedEntities = getFilteredEntityDetails();
+                LOG.debug("Updating the entities, new number of entities is {}", refreshedEntities.size());
+                entities.setItems(refreshedEntities);
+
+            }
+        });
+        getMainUI().addWindow(importerWindow);
 
     }
 

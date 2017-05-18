@@ -1,10 +1,6 @@
-<vaadin-vertical-layout size-full> 
-    <vaadin-vertical-layout  size-full :expand>
-	    <vaadin-panel _id="workPanel" size-full />
-	</vaadin-vertical-layout>
-	<vaadin-vertical-layout  size-full>
-        <vaadin-tab-sheet _id="phases" size-full/>
-    </vaadin-vertical-layout>
+<vaadin-vertical-layout size-full>
+    <vaadin-tab-sheet _id="phases" width-full/>
+    <vaadin-panel _id="workPanel" :expand />
 	<vaadin-horizontal-layout  width-full>
    		<vaadin-button _id="back" :center />
    		<vaadin-button _id="next" :center />

@@ -142,7 +142,10 @@ public class ScheduleSurveyAssessorsViewer extends AbstractSurveyVerticalLayout 
             if (!event.isUserOriginated()) {
                 return;
             }
-            EntityDetails selected = selectedEntity.getSelectedItems().iterator().next();
+            EntityDetails selected = details.get(0);
+            if (details.size() > 1) {
+                selected = selectedEntity.getSelectedItems().iterator().next();
+            }
             selected.getAssessors().clear();
             selected.getAssessors().addAll(selectAssessors.getSelectedItems());
         }

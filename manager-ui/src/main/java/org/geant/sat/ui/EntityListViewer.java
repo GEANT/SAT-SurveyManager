@@ -398,6 +398,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
                 List<EntityDetails> refreshedEntities = getFilteredEntityDetails();
                 LOG.debug("Updating the entities, new number of entities is {}", refreshedEntities.size());
                 entities.setItems(refreshedEntities);
+                entities.setHeightByRows(refreshedEntities.size() > 0 ? refreshedEntities.size() : 1);
 
             }
         });

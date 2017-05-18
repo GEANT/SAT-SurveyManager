@@ -183,7 +183,7 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
                 ((Window) basketWindow).setClosable(false);
                 ((Window) basketWindow).setCaption(getString("lang.importer.basket"));
                 ((Grid<EntityDetails>) basketEntities).setWidth("100%");
-                ((Window) basketWindow).setWidth("50%");
+                ((Window) basketWindow).setWidth("40%");
                 ((Window) basketWindow).setContent(((Grid<EntityDetails>) basketEntities));
                 getMainUI().addWindow((Window) basketWindow);
             }

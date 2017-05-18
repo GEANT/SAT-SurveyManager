@@ -36,7 +36,7 @@ public class EntityImporterWindow extends Window {
         super(ui.getStrings().getString("lang.window.importentity.title"));
         setContent(new ImportEntityViewer(ui));
         setClosable(false);
-        setWidth("35%");
+        setWidth("50%");
     }
 
 }

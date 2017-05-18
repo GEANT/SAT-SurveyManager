@@ -31,6 +31,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -203,7 +204,7 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
             }
         }
         for (final AssessorDetails details : assessors) {
-            if (!DataModelUtil.assessorListContains(storedAssessors, details.getId())) {
+            if (details.getId() != null && !DataModelUtil.assessorListContains(storedAssessors, details.getId())) {
                 log.debug("Adding assessor ID {} for entity {}", details.getId(), id);
                 final String update = "INSERT INTO " + DataModelUtil.TABLE_NAME_ENTITY_ASSESSOR + " ("
                         + DataModelUtil.COLUMN_NAME_ENTITY_ASSESSOR_ENTITY_ID + ", " 
@@ -438,6 +439,7 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                     existingId = existing.getId();
                     log.debug("Existing entity with id {} matched", existingId);
                     entity.setSids(existing.getSids());
+                    updateEntityAssessors(existingId, entity.getAssessors(), existing.getAssessors());
                 } else {
                     log.trace("Existing entity {} did not match with {}", existing.getName(), entity.getName());
                 }
@@ -446,6 +448,7 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
                 final EntityDetails created = createNewEntity(entity.getName(), entity.getDescription(), 
                         entity.getCreator());
                 entity.setId(created.getId());
+                updateEntityAssessors(created.getId(), entity.getAssessors(), new ArrayList<>());
                 log.debug("New entity with id={} stored", created.getId()); 
                 existingEntities.add(created);
             }

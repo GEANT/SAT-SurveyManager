@@ -34,7 +34,6 @@ import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.vaadin.annotations.DesignRoot;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.declarative.Design;
@@ -45,6 +44,7 @@ import com.vaadin.ui.declarative.Design;
 public class ScheduleSurveyReviewViewer extends AbstractSurveyVerticalLayout {
 
     /** Logger. */
+    @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(ScheduleSurveyReviewViewer.class);
 
     private TextArea text;
@@ -53,9 +53,14 @@ public class ScheduleSurveyReviewViewer extends AbstractSurveyVerticalLayout {
         super(ui);
         Design.read(this);
         String reviewText = "";
-        text.setCaption(getString("lang.scheduler.review.caption"));
+        boolean bFirst = true;
         for (EntityDetails entity : selectedDetails) {
-            reviewText += "\n" + getString("lang.scheduler.review.entity") + " " + entity.getName();
+            if (bFirst) {
+                bFirst = false;
+            } else {
+                reviewText += "\n";
+            }
+            reviewText += getString("lang.scheduler.review.entity") + " " + entity.getName();
             if (entity.getSids() == null || entity.getSids().size() == 0) {
                 reviewText += "\n" + getString("lang.scheduler.review.nosurveys");
             } else {
@@ -71,6 +76,7 @@ public class ScheduleSurveyReviewViewer extends AbstractSurveyVerticalLayout {
                     reviewText += assessor.getValue() + "\n";
             }
         }
+        text.setEnabled(false);
         text.setValue(reviewText);
     }
 

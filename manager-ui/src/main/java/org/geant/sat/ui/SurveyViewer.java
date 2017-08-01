@@ -30,22 +30,18 @@ package org.geant.sat.ui;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.geant.sat.api.dto.QuestionDetails;
 import org.geant.sat.api.dto.QuestionsResponse;
 import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.UserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.vaadin.annotations.DesignRoot;
-import com.vaadin.icons.VaadinIcons;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Grid;
-import com.vaadin.ui.Grid.Column;
-import com.vaadin.ui.Grid.ItemClick;
 import com.vaadin.ui.Grid.SelectionMode;
 import com.vaadin.ui.declarative.Design;
-import com.vaadin.ui.renderers.HtmlRenderer;
 
 /**
  * View to list all surveys.
@@ -57,9 +53,6 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
     /** Logger. */
     private static final Logger LOG = LoggerFactory.getLogger(SurveyViewer.class);
     /** id for column showing survey names. */
-
-    /** Column name for active column. */
-    private static final String COLUMN_ACTIVE = "active";
 
     /** Table showing surveys. */
     private Grid<SurveyDetails> surveys;
@@ -80,48 +73,29 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
             surveys.addColumn(SurveyDetails::getTitle).setCaption(getString("lang.surveys.column.title"));
             surveys.addColumn(SurveyDetails::getSid).setCaption(getString("lang.surveys.column.sid"));
             surveys.addColumn(SurveyDetails::getOwner).setCaption(getString("lang.surveys.column.owner"));
-            Column<SurveyDetails, String> column = surveys.addColumn(surveydetail -> isActive(surveydetail),
-                    new HtmlRenderer()).setCaption(getString("lang.surveys.column.active"));
-            column.setStyleGenerator(userdetail -> "active");
-            column.setId(COLUMN_ACTIVE);
+            surveys.addComponentColumn(surveydetail -> getActiveCB(surveydetail)).setCaption(
+                    getString("lang.surveys.column.active"));
             surveys.setHeightByRows(details.size() > 0 ? details.size() : 1);
-            surveys.addItemClickListener(event -> handleEvent(event));
         } else {
             LOG.warn("no survey details found");
         }
     }
 
     /**
-     * Handles click events.
-     * 
-     * @param event
-     *            representing the click.
-     */
-    private void handleEvent(ItemClick<SurveyDetails> event) {
-        SurveyDetails details = event.getItem();
-        if (event.getColumn().getId() != COLUMN_ACTIVE) {
-            // not a editable column
-            return;
-        }
-        details.setActive(!details.getActive());
-        verifySuccess(getMainUI().getSatApiClient().updateSurvey(details));
-        surveys.setItems(getFilteredSurveyDetails());
-    }
-
-    /**
-     * Generates cell containing active state information.
+     * Generates checkbox.
      * 
      * @param details
      *            of the user
-     * @return icon representing the state
+     * @return checkbox representing the state
      */
-    private String isActive(SurveyDetails details) {
-        if (details.getActive()) {
-            return VaadinIcons.CHECK_SQUARE_O.getHtml();
-        } else {
-            return VaadinIcons.THIN_SQUARE.getHtml();
-        }
-
+    private Component getActiveCB(SurveyDetails details) {
+        CheckBox cb = new CheckBox();
+        cb.setValue(details.getActive());
+        cb.addValueChangeListener(clickEvent -> {
+            details.setActive(!details.getActive());
+            verifySuccess(getMainUI().getSatApiClient().updateSurvey(details));
+        });
+        return cb;
     }
 
     /**

@@ -30,21 +30,16 @@ package org.geant.sat.ui;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.UserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.vaadin.annotations.DesignRoot;
-import com.vaadin.icons.VaadinIcons;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.Grid;
-import com.vaadin.ui.Grid.Column;
-import com.vaadin.ui.Grid.ItemClick;
 import com.vaadin.ui.Grid.SelectionMode;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.declarative.Design;
-import com.vaadin.ui.renderers.HtmlRenderer;
 
 /**
  * Viewer to list information on user.
@@ -57,13 +52,6 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
 
     /** Logger. */
     private static final Logger LOG = LoggerFactory.getLogger(UserListViewer.class);
-
-    /** Column name for admin column. */
-    private static final String COLUMN_ADMIN = "admin";
-    /** Column name for assessment coordinator column. */
-    private static final String COLUMN_AC = "ac";
-    /** Column name for survey owner column. */
-    private static final String COLUMN_SO = "so";
 
     /** Table showing user profile. */
     private Grid<UserDetails> users;
@@ -82,24 +70,16 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
         users.setItems(details);
         users.addColumn(UserDetails::getPrincipalId).setCaption(getString("lang.users.column.principal"));
         users.addColumn(UserDetails::getSurveyPrincipalId).setCaption(getString("lang.users.column.surveyprincipal"));
-        Column<UserDetails, String> column = users.addColumn(userdetail -> isAdmin(userdetail), new HtmlRenderer())
-                .setCaption(getString("lang.users.column.roles.admin"));
-        column.setId(COLUMN_ADMIN);
-        column = users.addColumn(userdetail -> isAssessmentCoordinator(userdetail), new HtmlRenderer()).setCaption(
+        users.addComponentColumn(userdetail -> getAdminCB(userdetail)).setCaption(
+                getString("lang.users.column.roles.admin"));
+        users.addComponentColumn(userdetail -> getAssessmentCoordinatorCB(userdetail)).setCaption(
                 getString("lang.users.column.roles.assessmentcoordinator"));
-        column.setId(COLUMN_AC);
-        column.setStyleGenerator(userdetail -> "active");
-        column = users.addColumn(userdetail -> isSurveyOwner(userdetail), new HtmlRenderer()).setCaption(
+        users.addComponentColumn(userdetail -> getSurveyOwnerCB(userdetail)).setCaption(
                 getString("lang.users.column.roles.surveyowner"));
-        column.setId(COLUMN_SO);
-        column = users.addColumn(userdetail -> getRoles(userdetail)).setCaption(getString("lang.users.column.roles"));
-        column.setHidable(true);
-        column.setHidden(true);
-        column = users.addColumn(userdetail -> getAttributes(userdetail)).setCaption(
-                getString("lang.users.column.attributes"));
-        column.setHidable(true);
-        column.setHidden(true);
-        users.addItemClickListener(event -> handleEvent(event));
+        users.addColumn(userdetail -> getRoles(userdetail)).setHidable(true).setHidden(true)
+                .setCaption(getString("lang.users.column.roles"));
+        users.addColumn(userdetail -> getAttributes(userdetail)).setHidable(true).setHidden(true)
+                .setCaption(getString("lang.users.column.attributes"));
         // atleast one, at most 20 and fit to size otherwise
         users.setHeightByRows(details.size() > 0 ? details.size() : 1);
 
@@ -121,31 +101,34 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
     }
 
     /**
-     * Handles click events.
+     * Generates checkbox representing admin role information.
      * 
-     * @param event
-     *            representing the click.
+     * @param details
+     *            of the user
+     * @return checkbox representing the admin role
      */
-    private void handleEvent(ItemClick<UserDetails> event) {
-        UserDetails details = event.getItem();
-        if (event.getColumn().getId() == null) {
-            // not a editable column
-            return;
-        }
-        if (!getMainUI().getRole().isAdmin(getMainUI().getUser().getDetails())) {
-            // Editing only for admin user.
-            return;
-        }
-        if (details.getPrincipalId() == null) {
-            Notification.show(getString("lang.notification.unmappedusersuneditable"));
-            return;
-        }
+    private Component getAdminCB(UserDetails details) {
+        CheckBox cb = new CheckBox();
+        cb.setValue(getMainUI().getRole().isAdmin(details));
+        cb.setEnabled(false);
+        return cb;
+    }
 
-        switch (event.getColumn().getId()) {
-        case COLUMN_ADMIN:
-            Notification.show(getString("lang.notification.limesurveyparameter"));
-            break;
-        case COLUMN_AC:
+    /**
+     * Generates checkbox representing assessment coordinator role information.
+     * 
+     * @param details
+     *            of the user
+     * @return checkbox representing the assessment coordinator role
+     */
+    private Component getAssessmentCoordinatorCB(UserDetails details) {
+        CheckBox cb = new CheckBox();
+        cb.setValue(getMainUI().getRole().isAssessmentCoordinator(details));
+        if (details.getPrincipalId() == null) {
+            cb.setEnabled(false);
+            return cb;
+        }
+        cb.addValueChangeListener(clickEvent -> {
             if (getMainUI().getRole().isAssessmentCoordinator(details)) {
                 LOG.debug("removing role " + getMainUI().getRole().getAssessmentCoordinatorRoleName());
                 details.getRoles().remove(getMainUI().getRole().getAssessmentCoordinatorRoleName());
@@ -154,63 +137,22 @@ public class UserListViewer<V> extends AbstractSurveyVerticalLayout {
                 details.getRoles().add(getMainUI().getRole().getAssessmentCoordinatorRoleName());
             }
             verifySuccess(getMainUI().getSatApiClient().updateUser(details));
-            users.setItems(getUserDetails());
-            break;
-        case COLUMN_SO:
-            Notification.show(getString("lang.notification.limesurveyparameter"));
-            break;
-        default:
-            break;
-        }
-
+        });
+        return cb;
     }
 
     /**
-     * Generates cell containing admin role information.
+     * Generates checkbox representing survey owner role information.
      * 
      * @param details
      *            of the user
-     * @return icon representing the state
+     * @return checkbox representing the survey owner role
      */
-    private String isAdmin(UserDetails details) {
-        if (getMainUI().getRole().isAdmin(details)) {
-            return VaadinIcons.CHECK_SQUARE_O.getHtml();
-        } else {
-            return VaadinIcons.THIN_SQUARE.getHtml();
-        }
-
-    }
-
-    /**
-     * Generates cell containing assessment coordinator role information.
-     * 
-     * @param details
-     *            of the user
-     * @return roles
-     */
-    private String isAssessmentCoordinator(UserDetails details) {
-        if (getMainUI().getRole().isAssessmentCoordinator(details)) {
-            return VaadinIcons.CHECK_SQUARE_O.getHtml();
-        } else {
-            return VaadinIcons.THIN_SQUARE.getHtml();
-        }
-
-    }
-
-    /**
-     * Generates cell containing survey owner role information.
-     * 
-     * @param details
-     *            of the user
-     * @return icon representing the state
-     */
-    private String isSurveyOwner(UserDetails details) {
-        if (getMainUI().getRole().isSurveyOwner(details)) {
-            return VaadinIcons.CHECK_SQUARE_O.getHtml();
-        } else {
-            return VaadinIcons.THIN_SQUARE.getHtml();
-        }
-
+    private Component getSurveyOwnerCB(UserDetails details) {
+        CheckBox cb = new CheckBox();
+        cb.setValue(getMainUI().getRole().isSurveyOwner(details));
+        cb.setEnabled(false);
+        return cb;
     }
 
     /**

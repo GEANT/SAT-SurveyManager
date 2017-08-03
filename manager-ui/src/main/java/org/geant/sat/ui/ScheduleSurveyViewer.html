@@ -1,13 +1,8 @@
 <vaadin-vertical-layout size-full>
-    <vaadin-tab-sheet _id="phases" width-full/>
-    <vaadin-panel _id="workPanel" :expand />
-	<vaadin-horizontal-layout  width-full>
-   		<vaadin-button _id="back" :center />
-   		<vaadin-button _id="next" :center />
-   	</vaadin-horizontal-layout>
-	<vaadin-horizontal-layout>    
+    <vaadin-horizontal-layout>    
     	<vaadin-button _id="cancel" :left />
    		<vaadin-button _id="send" :left />
    	</vaadin-horizontal-layout>
+   	<vaadin-grid _id="entities" width-full :top :center />
 </vaadin-vertical-layout>
 

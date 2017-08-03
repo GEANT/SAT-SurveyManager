@@ -36,8 +36,8 @@ import com.vaadin.ui.Window;
 @SuppressWarnings("serial")
 public class SurveySchedulerWindow extends Window {
 
-    SurveySchedulerWindow(MainUI ui, Set<EntityDetails> details) {
-        super();
+    SurveySchedulerWindow(MainUI ui, String title, Set<EntityDetails> details) {
+        super(title);
         setContent(new ScheduleSurveyViewer(ui, details));
         setWidth("80%");
         setHeight("50%");

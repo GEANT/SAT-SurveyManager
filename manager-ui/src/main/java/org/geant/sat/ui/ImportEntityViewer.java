@@ -36,7 +36,6 @@ import java.util.Set;
 import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.ListEntitiesResponse;
-import org.geant.sat.ui.utils.AssessorDetailsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,24 +153,6 @@ public class ImportEntityViewer extends AbstractSurveyVerticalLayout implements 
                     viewBasketButton.setVisible(entitiesSelection.size() > 0);
                 }));
 
-    }
-
-    /**
-     * Generates cell containing assessor information.
-     * 
-     * @param details
-     *            of the entity
-     * @return assessors
-     */
-    private String getAssessors(EntityDetails details) {
-        String assessors = "";
-        if (details == null || details.getAssessors() == null) {
-            return assessors;
-        }
-        for (AssessorDetails assDetails : details.getAssessors()) {
-            assessors += AssessorDetailsHelper.display(assDetails) + " ";
-        }
-        return assessors;
     }
 
     @SuppressWarnings("unchecked")

@@ -48,13 +48,10 @@ $v-panel-border: 2px solid v-shade;
     filter: alpha(opacity=65);
   }
   
-  /*
   .valo-menu-item:focus, .valo-menu-item:hover, .valo-menu-item.selected {
-    font-weight: 800 !important;
-    font-style: italic !important;
-    color: blue !important;
+    color: wheat !important;
   }
-  */
+  
   .v-grid-cell.disabled {
     color: grey;
     cursor: default;
@@ -64,5 +61,7 @@ $v-panel-border: 2px solid v-shade;
     color: blue;
     cursor: pointer;
   }
+  
+  
   
 }

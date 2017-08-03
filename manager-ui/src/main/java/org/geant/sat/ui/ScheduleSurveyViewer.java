@@ -97,12 +97,12 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
         entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"))
                 .setHidable(true).setHidden(true);
         entities.addColumn(entitydetail -> getSurveys(entitydetail)).setCaption(getString("lang.entities.column.sid"))
-                .setId(COLUMN_SIDS).setHidable(true).setHidden(false).setStyleGenerator(entitydetail -> "active");
+                .setId(COLUMN_SIDS).setHidable(true).setHidden(false)
+                .setStyleGenerator(entitydetail -> entitydetail.getSids().size() > 0 ? "active" : "required");
         entities.addColumn(entitydetail -> getAssessors(entitydetail))
                 .setCaption(getString("lang.entities.column.assesors")).setHidable(true).setHidden(false)
-                .setId(COLUMN_ASSESSORS).setStyleGenerator(entitydetail -> "active");
-        entities.addComponentColumn(entitydetail -> getValidCB(entitydetail)).setCaption(
-                getString("lang.scheduler.column.roles.valid"));
+                .setId(COLUMN_ASSESSORS)
+                .setStyleGenerator(entitydetail -> entitydetail.getAssessors().size() > 0 ? "active" : "required");
         entities.addItemClickListener(event -> handleEvent(event));
         entities.setHeightByRows(details.size() > 0 ? details.size() : 1);
         send.setEnabled(sentActive());
@@ -111,20 +111,6 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
         send.setCaption(getString("lang.scheduler.button.send"));
         send.addClickListener(this);
 
-    }
-
-    /**
-     * Generates checkbox showing validity of item to be sent.
-     * 
-     * @param details
-     *            of the user
-     * @return checkbox showing validity of item to be sent
-     */
-    private Component getValidCB(EntityDetails details) {
-        CheckBox cb = new CheckBox();
-        cb.setValue(details.getSids().size() > 0 && details.getAssessors().size() > 0);
-        cb.setEnabled(false);
-        return cb;
     }
 
     /**

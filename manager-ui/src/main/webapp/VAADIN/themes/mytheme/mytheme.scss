@@ -62,6 +62,11 @@ $v-panel-border: 2px solid v-shade;
     cursor: pointer;
   }
   
+  .v-grid-cell.required {
+    background-color: red;
+    cursor: pointer;
+  }
+  
   
   
 }

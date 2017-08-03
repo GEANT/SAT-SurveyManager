@@ -32,8 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.geant.sat.api.dto.AbstractConnectorResponse;
+import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.UserDetails;
+import org.geant.sat.ui.utils.AssessorDetailsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,6 +126,42 @@ public abstract class AbstractSurveyVerticalLayout extends VerticalLayout {
         }
         return userSpecificList;
 
+    }
+
+    /**
+     * Generates string containing survey information.
+     * 
+     * @param details
+     *            of the entity
+     * @return surveys
+     */
+    protected String getSurveys(EntityDetails details) {
+        String sids = "";
+        if (details == null || details.getSids() == null) {
+            return sids;
+        }
+        for (String sid : details.getSids()) {
+            sids += sid + " ";
+        }
+        return sids;
+    }
+
+    /**
+     * Generates string containing assessor information.
+     * 
+     * @param details
+     *            of the entity
+     * @return assessors
+     */
+    protected String getAssessors(EntityDetails details) {
+        String assessors = "";
+        if (details == null || details.getAssessors() == null) {
+            return assessors;
+        }
+        for (AssessorDetails assDetails : details.getAssessors()) {
+            assessors += AssessorDetailsHelper.display(assDetails) + " ";
+        }
+        return assessors;
     }
 
 }

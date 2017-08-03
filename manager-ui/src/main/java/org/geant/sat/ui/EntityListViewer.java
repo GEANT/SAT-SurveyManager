@@ -55,6 +55,8 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.declarative.Design;
 
+//TODO: Much of the code is shared by ScheduleSurveyViewer & EntityListViewer, REFACTOR
+
 /**
  * View to list all entities.
  */
@@ -342,42 +344,6 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
     }
 
     /**
-     * Generates cell containing survey information.
-     * 
-     * @param details
-     *            of the entity
-     * @return surveys
-     */
-    private String getSurveys(EntityDetails details) {
-        String sids = "";
-        if (details == null || details.getSids() == null) {
-            return sids;
-        }
-        for (String sid : details.getSids()) {
-            sids += sid + " ";
-        }
-        return sids;
-    }
-
-    /**
-     * Generates cell containing assessor information.
-     * 
-     * @param details
-     *            of the entity
-     * @return assessors
-     */
-    private String getAssessors(EntityDetails details) {
-        String assessors = "";
-        if (details == null || details.getAssessors() == null) {
-            return assessors;
-        }
-        for (AssessorDetails assDetails : details.getAssessors()) {
-            assessors += AssessorDetailsHelper.display(assDetails) + " ";
-        }
-        return assessors;
-    }
-
-    /**
      * Import entity click handler - creates a sub window for user to enter the
      * data.
      * 
@@ -411,7 +377,7 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
      */
     private void scheduleSurvey(ClickEvent event) {
         SurveySchedulerWindow surveySchedulerWindow = new SurveySchedulerWindow(getMainUI(),
-                entities.getSelectedItems());
+                getString("lang.window.surveyschedule.title"), entities.getSelectedItems());
         surveySchedulerWindow.setModal(true);
         getMainUI().addWindow(surveySchedulerWindow);
 

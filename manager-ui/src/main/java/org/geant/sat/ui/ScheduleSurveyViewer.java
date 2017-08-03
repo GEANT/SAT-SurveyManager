@@ -29,54 +29,53 @@
 package org.geant.sat.ui;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.EntityDetails;
+import org.geant.sat.api.dto.ListAllSurveysResponse;
+import org.geant.sat.api.dto.ListAssessorsResponse;
+import org.geant.sat.api.dto.SurveyDetails;
+import org.geant.sat.ui.utils.AssessorDetailsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.vaadin.annotations.DesignRoot;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.TwinColSelect;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
-import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
-import com.vaadin.ui.TabSheet.Tab;
+import com.vaadin.ui.Grid.ItemClick;
+import com.vaadin.ui.Grid;
 import com.vaadin.ui.declarative.Design;
-import com.vaadin.ui.themes.ValoTheme;
 import com.vaadin.ui.Window;
+
+//TODO: Much of the code is shared by ScheduleSurveyViewer & EntityListViewer, REFACTOR
 
 /** class implementing view to survey questions. */
 @SuppressWarnings("serial")
 @DesignRoot
-public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implements SelectedTabChangeListener,
-        ClickListener {
+public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implements ClickListener {
 
     /** Logger. */
     private static final Logger LOG = LoggerFactory.getLogger(ScheduleSurveyViewer.class);
-
-    /** Panel for tab views. */
-    private Panel workPanel;
-
-    /** Table showing survey questions. */
-    private TabSheet phases;
-    /** initial position of the tab */
-    private int position = 0;
-    private Button back;
-    private Button next;
     private Button cancel;
     private Button send;
 
-    private List<EntityDetails> selectedDetails = new ArrayList<EntityDetails>();
+    /** Column name for sids column. */
+    private static final String COLUMN_SIDS = "sids";
+    /** Column name for assessors column. */
+    private static final String COLUMN_ASSESSORS = "assessors";
 
-    private Tab entities;
-    private Tab surveys;
-    private Tab assessors;
-    private Tab review;
+    private List<EntityDetails> selectedDetails = new ArrayList<EntityDetails>();
+    /** Table showing entities to be scheduled */
+    private Grid<EntityDetails> entities;
 
     /**
      * Constructor for entity based initialization. Preselects one entity, it's
@@ -91,78 +90,71 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
         super(ui);
         Design.read(this);
         selectedDetails.addAll(details);
-        back.setEnabled(false);
-        send.setVisible(false);
-        back.addClickListener(this);
-        back.setCaption(getString("lang.scheduler.button.back"));
-        next.addClickListener(this);
+        entities.setItems(details);
+        entities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
+        entities.addColumn(EntityDetails::getDescription).setCaption(getString("lang.entities.column.description"))
+                .setHidable(true).setHidden(true);
+        entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"))
+                .setHidable(true).setHidden(true);
+        entities.addColumn(entitydetail -> getSurveys(entitydetail)).setCaption(getString("lang.entities.column.sid"))
+                .setId(COLUMN_SIDS).setHidable(true).setHidden(false).setStyleGenerator(entitydetail -> "active");
+        entities.addColumn(entitydetail -> getAssessors(entitydetail))
+                .setCaption(getString("lang.entities.column.assesors")).setHidable(true).setHidden(false)
+                .setId(COLUMN_ASSESSORS).setStyleGenerator(entitydetail -> "active");
+        entities.addComponentColumn(entitydetail -> getValidCB(entitydetail)).setCaption(
+                getString("lang.users.column.roles.admin"));
+        entities.addItemClickListener(event -> handleEvent(event));
+        entities.setHeightByRows(details.size() > 0 ? details.size() : 1);
+        send.setEnabled(sentActive());
         cancel.setCaption(getString("lang.scheduler.button.cancel"));
         cancel.addClickListener(this);
         send.setCaption(getString("lang.scheduler.button.send"));
         send.addClickListener(this);
-        next.setCaption(getString("lang.scheduler.button.next"));
-        entities = phases.addTab(new Label(getString("lang.scheduler.tab.entities")));
-        surveys = phases.addTab(new Label(getString("lang.scheduler.tab.surveys")));
-        assessors = phases.addTab(new Label(getString("lang.scheduler.tab.assessors")));
-        review = phases.addTab(new Label(getString("lang.scheduler.tab.review")));
-        workPanel.setContent(new ScheduleSurveyEntitiesViewer(getMainUI(), selectedDetails));
-        phases.addSelectedTabChangeListener(this);
-        phases.addStyleName(ValoTheme.TABSHEET_EQUAL_WIDTH_TABS);
-        phases.addStyleName(ValoTheme.TABSHEET_PADDED_TABBAR);
-        phases.addStyleName(ValoTheme.TABSHEET_CENTERED_TABS);
-        phases.setSelectedTab(entities);
+
     }
 
-    @Override
-    public void selectedTabChange(SelectedTabChangeEvent event) {
+    /**
+     * Generates checkbox showing validity of item to be sent.
+     * 
+     * @param details
+     *            of the user
+     * @return checkbox showing validity of item to be sent
+     */
+    private Component getValidCB(EntityDetails details) {
+        CheckBox cb = new CheckBox();
+        cb.setValue(details.getSids().size() > 0 && details.getAssessors().size() > 0);
+        cb.setEnabled(false);
+        return cb;
+    }
 
-        Tab selectedTab = phases.getTab(phases.getSelectedTab());
-        if (selectedTab.equals(entities)) {
-            back.setEnabled(false);
-            next.setEnabled(true);
-            position = 0;
-            workPanel.setContent(new ScheduleSurveyEntitiesViewer(getMainUI(), selectedDetails));
+    /**
+     * Handles click events.
+     * 
+     * @param event
+     *            representing the click.
+     */
+    private void handleEvent(ItemClick<EntityDetails> event) {
+        EntityDetails details = event.getItem();
+        if (event.getColumn().getId() == null) {
+            // not a editable column
             return;
         }
-        if (selectedTab.equals(surveys)) {
-            back.setEnabled(true);
-            next.setEnabled(true);
-            send.setVisible(false);
-            position = 1;
-            workPanel.setContent(new ScheduleSurveySurveysViewer(getMainUI(), selectedDetails));
-            return;
+        switch (event.getColumn().getId()) {
+        case COLUMN_SIDS:
+            editSurveys(details);
+            break;
+        case COLUMN_ASSESSORS:
+            editAssessors(details);
+            break;
+        default:
+            break;
         }
-        if (selectedTab.equals(assessors)) {
-            back.setEnabled(true);
-            next.setEnabled(true);
-            send.setVisible(false);
-            position = 2;
-            workPanel.setContent(new ScheduleSurveyAssessorsViewer(getMainUI(), selectedDetails));
-            return;
-        }
-        if (selectedTab.equals(review)) {
-            back.setEnabled(true);
-            next.setEnabled(false);
-            send.setVisible(true);
-            position = 3;
-            workPanel.setContent(new ScheduleSurveyReviewViewer(getMainUI(), selectedDetails));
-            return;
-        }
-
     }
 
     @Override
     public void buttonClick(ClickEvent event) {
-        if (event.getButton() == back) {
-            phases.setSelectedTab(--position);
-            return;
-        }
-        if (event.getButton() == next) {
-            phases.setSelectedTab(++position);
-            return;
-        }
         if (event.getButton() == send) {
-            sendSurveyus(event);
+            sendSurveys(event);
             return;
         }
         if (event.getButton() == cancel) {
@@ -172,12 +164,163 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
 
     }
 
-    public void sendSurveyus(ClickEvent event) {
+    public void sendSurveys(ClickEvent event) {
         LOG.debug("Sending surveys");
         final String principalId = getMainUI().getUser().getDetails().getPrincipalId();
-        getMainUI().getSatApiClient().instantiateSurveys(selectedDetails, principalId);
+        if (!verifySuccess(getMainUI().getSatApiClient().instantiateSurveys(selectedDetails, principalId))) {
+            Notification.show(getString("lang.window.surveyschedule.failed"), Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+        Notification.show(getString("lang.window.surveyschedule.sent"), Notification.Type.HUMANIZED_MESSAGE);
         ((Window) getParent()).close();
 
+    }
+
+    /**
+     * Creates a subwindow for editing survey details of entity.
+     * 
+     * @param details
+     *            entity
+     */
+    private void editSurveys(EntityDetails details) {
+        Window subWindowNewEntity = new Window(getString("lang.window.surveyschedule.editsids.title"));
+        subWindowNewEntity.setModal(true);
+        VerticalLayout subContent = new VerticalLayout();
+        TwinColSelect<String> selectSids = new TwinColSelect<>(getString("lang.window.newentity.editsids.sids"));
+        selectSids.setData(details);
+        ListAllSurveysResponse resp = getMainUI().getSatApiClient().getSurveys();
+        if (!verifySuccess(resp)) {
+            return;
+        }
+        List<SurveyDetails> surveyDetails = resp.getSurveys();
+        // parse active sids
+        List<String> activeSurveyDetails = new ArrayList<String>();
+        for (SurveyDetails surveyDetail : surveyDetails) {
+            if (surveyDetail.getActive()) {
+                activeSurveyDetails.add(surveyDetail.getSid());
+            }
+        }
+        selectSids.setItems(activeSurveyDetails);
+        // set current sids as selection
+        selectSids.updateSelection(details.getSids(), new HashSet<String>());
+        subContent.addComponent(selectSids, 0);
+        Button editButton = new Button(getString("lang.window.newentity.buttonModify"));
+        subContent.addComponent(editButton, 1);
+        editButton.addClickListener(this::editedSurveys);
+        Button cancelButton = new Button(getString("lang.window.newentity.buttonCancel"));
+        subContent.addComponent(cancelButton, 2);
+        cancelButton.addClickListener(this::canceledEditSurveys);
+        subWindowNewEntity.setContent(subContent);
+        getMainUI().addWindow(subWindowNewEntity);
+    }
+
+    /**
+     * Edits the list of surveys of a entity.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void editedSurveys(ClickEvent event) {
+        @SuppressWarnings("unchecked")
+        TwinColSelect<String> select = (TwinColSelect<String>) ((VerticalLayout) event.getButton().getParent())
+                .getComponent(0);
+        EntityDetails details = (EntityDetails) select.getData();
+        LOG.debug("Original surveys " + details.getSids());
+        details.getSids().clear();
+        details.getSids().addAll(select.getSelectedItems());
+        LOG.debug("New set of surveys " + details.getSids());
+        send.setEnabled(sentActive());
+        entities.setItems(selectedDetails);
+        ((Window) event.getButton().getParent().getParent()).close();
+    }
+
+    /**
+     * Closes edit surveys window.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void canceledEditSurveys(ClickEvent event) {
+        ((Window) event.getButton().getParent().getParent()).close();
+    }
+
+    /**
+     * Creates a subwindow for editing assessor details of entity.
+     * 
+     * @param details
+     *            entity
+     */
+    private void editAssessors(EntityDetails details) {
+        Window subWindowNewEntity = new Window(getString("lang.window.surveyschedule.editassessors.title"));
+        subWindowNewEntity.setWidth("80%");
+        subWindowNewEntity.setModal(true);
+        VerticalLayout subContent = new VerticalLayout();
+        subContent.setWidth("100%");
+        TwinColSelect<AssessorDetails> selectAssessors = new TwinColSelect<>(
+                getString("lang.window.newentity.editassessors.assessors"));
+        selectAssessors.setItemCaptionGenerator(new AssessorDetailsHelper());
+        selectAssessors.setWidth("100%");
+        selectAssessors.setData(details);
+        ListAssessorsResponse resp = getMainUI().getSatApiClient().getAssessors();
+        if (!verifySuccess(resp)) {
+            return;
+        }
+        List<AssessorDetails> assessorDetails = resp.getAssessors();
+        selectAssessors.setItems(assessorDetails);
+        selectAssessors.updateSelection(AssessorDetailsHelper.selectionToSet(assessorDetails, details.getAssessors()),
+                new HashSet<AssessorDetails>());
+        subContent.addComponent(selectAssessors, 0);
+        Button editButton = new Button(getString("lang.window.newentity.buttonModify"));
+        subContent.addComponent(editButton, 1);
+        editButton.addClickListener(this::editedAssessors);
+        Button cancelButton = new Button(getString("lang.window.newentity.buttonCancel"));
+        subContent.addComponent(cancelButton, 2);
+        cancelButton.addClickListener(this::canceledEditAssessors);
+        subWindowNewEntity.setContent(subContent);
+        getMainUI().addWindow(subWindowNewEntity);
+    }
+
+    /**
+     * Edits the list of surveys of a entity.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void editedAssessors(ClickEvent event) {
+        @SuppressWarnings("unchecked")
+        TwinColSelect<AssessorDetails> select = (TwinColSelect<AssessorDetails>) ((VerticalLayout) event.getButton()
+                .getParent()).getComponent(0);
+        EntityDetails details = (EntityDetails) select.getData();
+        LOG.debug("Selected items " + select.getSelectedItems());
+        details.getAssessors().clear();
+        details.getAssessors().addAll(select.getSelectedItems());
+        send.setEnabled(sentActive());
+        entities.setItems(selectedDetails);
+        ((Window) event.getButton().getParent().getParent()).close();
+    }
+
+    /**
+     * Closes edit surveys window.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void canceledEditAssessors(ClickEvent event) {
+        ((Window) event.getButton().getParent().getParent()).close();
+    }
+
+    /**
+     * Helper for setting state of send button.
+     * 
+     * @return
+     */
+    private boolean sentActive() {
+        for (EntityDetails details : selectedDetails) {
+            if (details.getAssessors().size() == 0 || details.getSids().size() == 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

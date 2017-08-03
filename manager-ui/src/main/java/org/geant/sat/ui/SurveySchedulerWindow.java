@@ -40,7 +40,6 @@ public class SurveySchedulerWindow extends Window {
         super(title);
         setContent(new ScheduleSurveyViewer(ui, details));
         setWidth("80%");
-        setHeight("50%");
     }
 
 }

@@ -54,7 +54,6 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.declarative.Design;
-import com.vaadin.ui.renderers.ButtonRenderer;
 
 /**
  * View to list all entities.
@@ -78,6 +77,8 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
     private Button addEntity;
     /** import entity button. */
     private Button importEntity;
+    /** schedule survey button. */
+    private Button scheduleSurvey;
 
     /**
      * Constructor. Populates the table with survey information.
@@ -85,7 +86,6 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
      * @param ui
      *            Main ui instance to access shared data.
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public EntityListViewer(MainUI ui) {
         super(ui);
         Design.read(this);
@@ -93,21 +93,17 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
         addEntity.addClickListener(this::addEntity);
         importEntity.setCaption(getString("lang.button.import"));
         importEntity.addClickListener(this::importEntity);
-        entities.setSelectionMode(SelectionMode.NONE);
+        scheduleSurvey.setCaption(getString("lang.entities.button.schedule"));
+        scheduleSurvey.addClickListener(this::scheduleSurvey);
+        scheduleSurvey.setEnabled(false);
+        entities.setSelectionMode(SelectionMode.MULTI);
+        entities.addSelectionListener(event -> scheduleSurvey.setEnabled(event.getAllSelectedItems().size() > 0));
         List<EntityDetails> details = getFilteredEntityDetails();
         if (details != null && details.size() > 0) {
             // entities.setDataProvider(new EntityDetailsHelper(details));
             entities.setItems(details);
         }
         entities.addColumn(EntityDetails::getName).setCaption(getString("lang.entities.column.name"));
-        entities.addColumn(
-                entitydetail -> getString("lang.entities.button.schedule"),
-                new ButtonRenderer(clickEvent -> {
-                    SurveySchedulerWindow surveySchedulerWindow = new SurveySchedulerWindow(ui,
-                            (EntityDetails) clickEvent.getItem());
-                    surveySchedulerWindow.setModal(true);
-                    ui.addWindow(surveySchedulerWindow);
-                })).setCaption(getString("lang.entities.column.schedule"));
         entities.addColumn(EntityDetails::getDescription).setCaption(getString("lang.entities.column.description"))
                 .setHidable(true);
         entities.addColumn(EntityDetails::getCreator).setCaption(getString("lang.entities.column.creator"))
@@ -406,4 +402,18 @@ public class EntityListViewer extends AbstractSurveyVerticalLayout {
 
     }
 
+    /**
+     * Schedule survey click handler - creates a sub window for user to enter
+     * the data.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void scheduleSurvey(ClickEvent event) {
+        SurveySchedulerWindow surveySchedulerWindow = new SurveySchedulerWindow(getMainUI(),
+                entities.getSelectedItems());
+        surveySchedulerWindow.setModal(true);
+        getMainUI().addWindow(surveySchedulerWindow);
+
+    }
 }

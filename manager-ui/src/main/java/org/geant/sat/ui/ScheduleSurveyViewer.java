@@ -30,6 +30,7 @@ package org.geant.sat.ui;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.geant.sat.api.dto.EntityDetails;
 import org.slf4j.Logger;
@@ -86,10 +87,10 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
      * @param details
      *            question details.
      */
-    ScheduleSurveyViewer(MainUI ui, EntityDetails details) {
+    ScheduleSurveyViewer(MainUI ui, Set<EntityDetails> details) {
         super(ui);
         Design.read(this);
-        selectedDetails.add(details);
+        selectedDetails.addAll(details);
         back.setEnabled(false);
         send.setVisible(false);
         back.addClickListener(this);

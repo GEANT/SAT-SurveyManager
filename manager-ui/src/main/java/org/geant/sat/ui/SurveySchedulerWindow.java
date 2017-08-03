@@ -27,6 +27,8 @@
  */
 package org.geant.sat.ui;
 
+import java.util.Set;
+
 import org.geant.sat.api.dto.EntityDetails;
 
 import com.vaadin.ui.Window;
@@ -34,7 +36,7 @@ import com.vaadin.ui.Window;
 @SuppressWarnings("serial")
 public class SurveySchedulerWindow extends Window {
 
-    SurveySchedulerWindow(MainUI ui, EntityDetails details) {
+    SurveySchedulerWindow(MainUI ui, Set<EntityDetails> details) {
         super();
         setContent(new ScheduleSurveyViewer(ui, details));
         setWidth("80%");

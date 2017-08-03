@@ -102,7 +102,7 @@ public class ScheduleSurveyViewer extends AbstractSurveyVerticalLayout implement
                 .setCaption(getString("lang.entities.column.assesors")).setHidable(true).setHidden(false)
                 .setId(COLUMN_ASSESSORS).setStyleGenerator(entitydetail -> "active");
         entities.addComponentColumn(entitydetail -> getValidCB(entitydetail)).setCaption(
-                getString("lang.users.column.roles.admin"));
+                getString("lang.scheduler.column.roles.valid"));
         entities.addItemClickListener(event -> handleEvent(event));
         entities.setHeightByRows(details.size() > 0 ? details.size() : 1);
         send.setEnabled(sentActive());

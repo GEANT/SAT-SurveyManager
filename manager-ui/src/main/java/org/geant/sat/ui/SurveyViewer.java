@@ -30,16 +30,21 @@ package org.geant.sat.ui;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.geant.sat.api.dto.ListTokensResponse;
 import org.geant.sat.api.dto.QuestionDetails;
 import org.geant.sat.api.dto.QuestionsResponse;
 import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.UserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.vaadin.annotations.DesignRoot;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Grid;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Grid.SelectionMode;
 import com.vaadin.ui.declarative.Design;
 
@@ -56,6 +61,8 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
 
     /** Table showing surveys. */
     private Grid<SurveyDetails> surveys;
+    /** List survey instances button. */
+    private Button scheduledSurveys;
 
     /**
      * Constructor. Populates the table with survey information.
@@ -66,7 +73,11 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
     public SurveyViewer(MainUI ui) {
         super(ui);
         Design.read(this);
-        surveys.setSelectionMode(SelectionMode.NONE);
+        surveys.setSelectionMode(SelectionMode.SINGLE);
+        scheduledSurveys.setCaption(getString("lang.entities.button.scheduled"));
+        scheduledSurveys.addClickListener(this::scheduledSurveys);
+        scheduledSurveys.setEnabled(false);
+        surveys.addSelectionListener(event -> scheduledSurveys.setEnabled(event.getAllSelectedItems().size() > 0));
         List<SurveyDetails> details = getFilteredSurveyDetails();
         if (details != null && details.size() > 0) {
             surveys.setItems(details);
@@ -126,7 +137,6 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
             }
         }
         return userSpecificList;
-
     }
 
     /**
@@ -150,6 +160,26 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
             return null;
         }
         return qr.getQuestions();
+    }
+
+    /**
+     * Scheduled surveys click handler - creates a sub window with list of
+     * surveys to control/monitor.
+     * 
+     * @param event
+     *            button click event.
+     */
+    private void scheduledSurveys(ClickEvent event) {
+        ListTokensResponse tokens = getMainUI().getSatApiClient().getTokens(
+                surveys.getSelectedItems().iterator().next().getSid());
+        if (!verifySuccess(tokens)) {
+            return;
+        }
+        ScheduledSurveysWindow scheduledSurveysWindow = new ScheduledSurveysWindow(getMainUI(),
+                getString("lang.window.scheduledsurveys.title"), tokens.getTokens());
+        scheduledSurveysWindow.setModal(true);
+        getMainUI().addWindow(scheduledSurveysWindow);
+
     }
 
 }

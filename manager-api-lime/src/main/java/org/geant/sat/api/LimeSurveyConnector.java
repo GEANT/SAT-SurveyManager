@@ -255,6 +255,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
         final ListSurveyTokensResponse response = new ListSurveyTokensResponse();
         try {
             final ListParticipantsResponse participants = fetchParticipants(sid);
+            response.setErrorMessage(participants.getErrorMessage());
             for (final ParticipantOverview participant : participants.getParticipants()) {
                 final SurveyTokenDetails details = new SurveyTokenDetails();
                 details.setSurveyId(sid);

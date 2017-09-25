@@ -612,6 +612,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
                     } else {
                         log.debug("Parsed error {} from the response", errorMessage);
                         response.setErrorMessage(errorMessage);
+                        return response;
                     }
                 } else {
                     log.error("Could not parse status or {} from {}", response.getClass(), contents);

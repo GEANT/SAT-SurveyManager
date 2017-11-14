@@ -30,6 +30,10 @@ $v-panel-border: 2px solid v-shade;
 @mixin mytheme {
   @include valo;
 
+  .v-panel {
+     background-image: url(bg.jpg);
+     background-size:cover;
+  }
   .v-loading-indicator,
   .v-loading-indicator-delay,
   .v-loading-indicator-wait {

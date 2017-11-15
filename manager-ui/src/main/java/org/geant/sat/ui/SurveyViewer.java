@@ -29,21 +29,25 @@
 package org.geant.sat.ui;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.geant.sat.api.dto.ListTokensResponse;
 import org.geant.sat.api.dto.QuestionDetails;
 import org.geant.sat.api.dto.QuestionsResponse;
 import org.geant.sat.api.dto.SurveyDetails;
+import org.geant.sat.api.dto.TokenDetails;
 import org.geant.sat.api.dto.UserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.vaadin.annotations.DesignRoot;
+import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Grid;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Grid.SelectionMode;
 import com.vaadin.ui.declarative.Design;
@@ -63,6 +67,8 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
     private Grid<SurveyDetails> surveys;
     /** List survey instances button. */
     private Button scheduledSurveys;
+    /** Token details for selected survey. */
+    List<TokenDetails> tokenDetails;
 
     /**
      * Constructor. Populates the table with survey information.
@@ -77,7 +83,7 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
         scheduledSurveys.setCaption(getString("lang.entities.button.scheduled"));
         scheduledSurveys.addClickListener(this::scheduledSurveys);
         scheduledSurveys.setEnabled(false);
-        surveys.addSelectionListener(event -> scheduledSurveys.setEnabled(event.getAllSelectedItems().size() > 0));
+        surveys.addSelectionListener(event -> scheduledSurveys.setEnabled(setTokenDetails(event)));
         List<SurveyDetails> details = getFilteredSurveyDetails();
         if (details != null && details.size() > 0) {
             surveys.setItems(details);
@@ -90,6 +96,23 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
         } else {
             LOG.warn("no survey details found");
         }
+    }
+
+    private boolean setTokenDetails(SelectionEvent<SurveyDetails> event) {
+        Iterator<SurveyDetails> iter = surveys.getSelectedItems().iterator();
+        if (!iter.hasNext()) {
+            return false;
+        }
+        ListTokensResponse tokens = getMainUI().getSatApiClient().getTokens(iter.next().getSid());
+        if (!verifySuccess(tokens)) {
+            return false;
+        }
+        tokenDetails = tokens.getTokens();
+        if (tokenDetails.size() == 0) {
+            Notification.show(getString("lang.notification.noitems"), Notification.Type.HUMANIZED_MESSAGE);
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -170,13 +193,11 @@ public class SurveyViewer extends AbstractSurveyVerticalLayout {
      *            button click event.
      */
     private void scheduledSurveys(ClickEvent event) {
-        ListTokensResponse tokens = getMainUI().getSatApiClient().getTokens(
-                surveys.getSelectedItems().iterator().next().getSid());
-        if (!verifySuccess(tokens)) {
-            return;
+        if (tokenDetails == null) {
+            LOG.debug("tokenDetails is null, should not happen");
         }
         ScheduledSurveysWindow scheduledSurveysWindow = new ScheduledSurveysWindow(getMainUI(),
-                getString("lang.window.scheduledsurveys.title"), tokens.getTokens());
+                getString("lang.window.scheduledsurveys.title"), tokenDetails);
         scheduledSurveysWindow.setModal(true);
         getMainUI().addWindow(scheduledSurveysWindow);
 

@@ -71,6 +71,10 @@ $v-panel-border: 2px solid v-shade;
     cursor: pointer;
   }
   
+  .v-grid-cell-focused:before {
+       display: none !important;
+  }
+  
   
   
 }

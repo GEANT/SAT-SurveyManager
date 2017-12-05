@@ -262,7 +262,7 @@ public class LimeSurveyConnector implements SurveySystemConnector {
             for (final ParticipantOverview participant : participants.getParticipants()) {
                 final SurveyTokenDetails details = new SurveyTokenDetails();
                 details.setSurveyId(sid);
-                details.setCompleted("Y".equalsIgnoreCase(participant.getCompleted()));
+                details.setCompleted(participant.getCompleted());
                 details.setToken(participant.getToken());
                 response.getTokens().add(details);
             }

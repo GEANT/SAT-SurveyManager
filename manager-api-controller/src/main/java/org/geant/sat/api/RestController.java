@@ -360,7 +360,7 @@ public class RestController {
                 if (details.getToken().equals(surveyDetails.getToken())) {
                     log.debug("Token matched, updating the details");
                     details.setValid(true);
-                    details.setCompleted(surveyDetails.isCompleted());
+                    details.setCompleted(!surveyDetails.getCompleted().equalsIgnoreCase("N"));
                 } else {
                     log.trace("Tokens did not match, nothing to do");
                 }

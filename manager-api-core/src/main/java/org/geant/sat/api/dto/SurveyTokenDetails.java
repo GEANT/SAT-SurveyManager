@@ -39,8 +39,8 @@ public class SurveyTokenDetails {
     /** The token for the survey. */
     private String token;
     
-    /** The flag for the survey being completed. */
-    private boolean completed;
+    /** The timestamp when the survey was completed, or 'N' if it has not. */
+    private String completed;
 
     /**
      * Get the survey identifier.
@@ -75,19 +75,19 @@ public class SurveyTokenDetails {
     }
 
     /**
-     * Get the flag for the survey being completed.
-     * @return The flag for the survey being completed.
+     * Get the timestamp when the survey was completed, or 'N' if it has not.
+     * @return The timestamp when the survey was completed, or 'N' if it has not.
      */
-    public boolean isCompleted() {
+    public String getCompleted() {
         return completed;
     }
 
     /**
-     * Set the flag for the survey being completed.
-     * @param isCompleted true to be completed, false otherwise.
+     * Set the timestamp when the survey was completed, or 'N' if it has not.
+     * @param complete The timestamp when the survey was completed, or 'N' if it has not.
      */
-    public void setCompleted(boolean isCompleted) {
-        this.completed = isCompleted;
+    public void setCompleted(String complete) {
+        this.completed = complete;
     }
     
     

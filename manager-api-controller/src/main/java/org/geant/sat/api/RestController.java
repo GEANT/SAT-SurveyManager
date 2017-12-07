@@ -36,6 +36,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.geant.sat.api.dto.AnswerDetails;
 import org.geant.sat.api.dto.AnswersResponse;
 import org.geant.sat.api.dto.AssessorDetails;
 import org.geant.sat.api.dto.AssessorResponse;
@@ -43,6 +44,7 @@ import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.EntityImporterDetails;
 import org.geant.sat.api.dto.EntityResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
+import org.geant.sat.api.dto.ListSurveyStatusResponse;
 import org.geant.sat.api.dto.ListSurveyTokensResponse;
 import org.geant.sat.api.dto.ListTokensResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
@@ -51,6 +53,7 @@ import org.geant.sat.api.dto.RoleDetails;
 import org.geant.sat.api.dto.RoleResponse;
 import org.geant.sat.api.dto.SurveyDetails;
 import org.geant.sat.api.dto.SurveyResponse;
+import org.geant.sat.api.dto.SurveyStatusDetails;
 import org.geant.sat.api.dto.SurveyTokenDetails;
 import org.geant.sat.api.dto.TokenDetails;
 import org.geant.sat.api.dto.ListAllSurveysResponse;
@@ -367,6 +370,65 @@ public class RestController {
             }
         }
         return new ResponseEntity<ListTokensResponse>(response, HttpStatus.OK);
+    }
+    
+    /**
+     * Lists status for all instantiated surveys.
+     * @param sid The survey identifier.
+     * @param httpRequest The HTTP servlet request.
+     * @param httpResponse The HTTP servlet response.
+     * @return All the statuses for instantiated surveys.
+     */
+    @RequestMapping(value = "/surveyStatus", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<ListSurveyStatusResponse> listInstantiatedSurves(
+            @RequestParam(value = "sid", required = true) String sid, HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        log.debug("Starting /surveyStatus endpoint");
+        final ResponseEntity<ListTokensResponse> tokensResponse = listTokens(sid, httpRequest, httpResponse);
+        final ResponseEntity<AnswersResponse> answersResponse = listAnswers(sid, httpRequest, httpResponse);
+        final ResponseEntity<QuestionsResponse> questionsResponse = listQuestions(sid, httpRequest, httpResponse);
+        final ListSurveyStatusResponse response = new ListSurveyStatusResponse();
+        if (tokensResponse.getStatusCode() != HttpStatus.OK || answersResponse.getStatusCode() != HttpStatus.OK
+                || questionsResponse.getStatusCode() != HttpStatus.OK) {
+            //TODO check error messages
+            log.error("The source responses were not all OK: tokens: {}, questions: {}, answers: {}", 
+                    tokensResponse.getStatusCode(), questionsResponse.getStatusCode(), answersResponse.getStatusCode());
+            response.setErrorMessage("Could not fetch the source information");
+            return new ResponseEntity<ListSurveyStatusResponse>(response, HttpStatus.BAD_GATEWAY);
+        }
+        response.setQuestions(questionsResponse.getBody().getQuestions());
+        final List<SurveyStatusDetails> statuses = new ArrayList<>();
+        for (final TokenDetails tokenDetails : tokensResponse.getBody().getTokens()) {
+            final SurveyStatusDetails details = new SurveyStatusDetails();
+            final String token = tokenDetails.getToken();
+            details.setToken(token);
+            details.setCompleted(tokenDetails.isCompleted());
+            details.setAssessorId(tokenDetails.getAssessorId());
+            details.setEntityId(tokenDetails.getEntityId());
+            details.setEventId(tokenDetails.getEventId());
+            details.setPrincipalId(tokenDetails.getPrincipalId());
+            details.setSurveyId(tokenDetails.getSurveyId());
+            details.setValid(tokenDetails.isValid());
+            details.setAnswers(getAnswerDetails(token, answersResponse.getBody().getAnswers()));
+            statuses.add(details);
+        }
+        response.setStatuses(statuses);
+        return new ResponseEntity<ListSurveyStatusResponse>(response, HttpStatus.OK);
+    }
+    
+    /**
+     * Get the answer details matching the given token.
+     * @param token The token to be matched against.
+     * @param details All the answer details to get match from.
+     * @return The matching details, or null if no match was found.
+     */
+    private AnswerDetails getAnswerDetails(final String token, final List<AnswerDetails> details) {
+        for (final AnswerDetails answer : details) {
+            if (token.equals(answer.getToken())) {
+                return answer;
+            }
+        }
+        return null;
     }
 
     /**

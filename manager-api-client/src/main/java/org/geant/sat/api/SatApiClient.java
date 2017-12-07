@@ -57,6 +57,7 @@ import org.geant.sat.api.dto.AssessorResponse;
 import org.geant.sat.api.dto.EntityDetails;
 import org.geant.sat.api.dto.EntityResponse;
 import org.geant.sat.api.dto.ListRolesResponse;
+import org.geant.sat.api.dto.ListSurveyStatusResponse;
 import org.geant.sat.api.dto.ListTokensResponse;
 import org.geant.sat.api.dto.ListUsersResponse;
 import org.geant.sat.api.dto.QuestionsResponse;
@@ -161,6 +162,16 @@ public class SatApiClient {
     public ListTokensResponse getTokens(final String sid) {
         final String url = apiBaseUrl + "/tokens?sid=" + sid;
         return getResponseWithGet(url, ListTokensResponse.class);
+    }
+
+    /**
+     * Get all the instantiated statuses for one survey from the Survey Manager API.
+     * @param sid The survey identifier.
+     * @return All the instantiated statuses for one survey from the Survey Manager API.
+     */
+    public ListSurveyStatusResponse getSurveyStatus(final String sid) {
+        final String url = apiBaseUrl + "/surveyStatus?sid=" + sid;
+        return getResponseWithGet(url, ListSurveyStatusResponse.class);
     }
 
     /**

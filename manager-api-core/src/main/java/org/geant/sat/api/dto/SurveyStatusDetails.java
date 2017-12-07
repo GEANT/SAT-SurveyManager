@@ -28,30 +28,27 @@
 
 package org.geant.sat.api.dto;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * This class contains information for one instantiated survey status.
  */
 public class SurveyStatusDetails extends SurveyTokenDetails {
 
-    /** All the answer details. */
-    private List<AnswerDetails> answers = new ArrayList<>();
+    /** The answer details. */
+    private AnswerDetails answers;
 
     /**
-     * Get all the answer details.
-     * @return All the answers details.
+     * Get the answer details.
+     * @return The answers details.
      */
-    public List<AnswerDetails> getAnswers() {
+    public AnswerDetails getAnswers() {
         return answers;
     }
    
     /**
-     * Set all the answer details.
+     * Set the answer details.
      * @param newAnswers What to set.
      */
-    public void setAnswers(List<AnswerDetails> newAnswers) {
-        this.answers = newAnswers;
+    public void setAnswers(final AnswerDetails newAnswers) {
+        answers = newAnswers;
     }
 }

@@ -70,7 +70,7 @@ public class ListSurveyStatusResponse extends AbstractConnectorResponse {
      * Set the details for instantiated survey status.
      * @param details What to set.
      */
-    public void setTokens(List<SurveyStatusDetails> details) {
+    public void setStatuses(List<SurveyStatusDetails> details) {
         statuses = details;
     }
 }

@@ -31,7 +31,7 @@ package org.geant.sat.api.dto;
 /**
  * This class contains information for one instantiated survey status.
  */
-public class SurveyStatusDetails extends SurveyTokenDetails {
+public class SurveyStatusDetails extends TokenDetails {
 
     /** The answer details. */
     private AnswerDetails answers;

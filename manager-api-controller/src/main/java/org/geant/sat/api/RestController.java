@@ -400,15 +400,9 @@ public class RestController {
         final List<SurveyStatusDetails> statuses = new ArrayList<>();
         for (final TokenDetails tokenDetails : tokensResponse.getBody().getTokens()) {
             final SurveyStatusDetails details = new SurveyStatusDetails();
+            details.setAssessor(userDbConnector.getAssessorDetails(tokenDetails.getAssessorId()));
+            details.setEntity(userDbConnector.getEntityDetails(tokenDetails.getEntityId()));
             final String token = tokenDetails.getToken();
-            details.setToken(token);
-            details.setCompleted(tokenDetails.isCompleted());
-            details.setAssessorId(tokenDetails.getAssessorId());
-            details.setEntityId(tokenDetails.getEntityId());
-            details.setEventId(tokenDetails.getEventId());
-            details.setPrincipalId(tokenDetails.getPrincipalId());
-            details.setSurveyId(tokenDetails.getSurveyId());
-            details.setValid(tokenDetails.isValid());
             details.setAnswers(getAnswerDetails(token, answersResponse.getBody().getAnswers()));
             statuses.add(details);
         }

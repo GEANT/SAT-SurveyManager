@@ -407,26 +407,28 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
             log.debug("Analyzing entity {} with name {}", entity.getId(), entity.getName());
             for (int i = 0; i < entity.getAssessors().size(); i++) {
                 final AssessorDetails assessor = entity.getAssessors().get(i);
-                String existingId = null;
+                AssessorDetails existing = null;
                 final Iterator<AssessorDetails> iterator = existingAssessors.iterator();
-                while (iterator.hasNext() && existingId == null) {
-                    final AssessorDetails existing = iterator.next();
-                    if (existing.getType().equalsIgnoreCase(assessor.getType()) 
-                            && existing.getValue().equalsIgnoreCase(assessor.getValue())) {
-                        existingId = existing.getId();
-                        log.debug("Existing assessor with id {} matched", existingId);
+                while (iterator.hasNext() && existing == null) {
+                    final AssessorDetails candidate = iterator.next();
+                    if (candidate.getType().equalsIgnoreCase(assessor.getType()) 
+                            && candidate.getValue().equalsIgnoreCase(assessor.getValue())) {
+                        existing = candidate;
+                        log.debug("Existing assessor with id {} matched", existing.getId());
                     } else {
-                        log.trace("Existing assessor {} did not match with {}", existing.getValue(), 
+                        log.trace("Existing assessor {} did not match with {}", candidate.getValue(), 
                                 assessor.getValue());
                     }
                 }
-                if (existingId == null) {
+                if (existing == null) {
                     //TODO: hardcoded to the email type
                     final AssessorDetails created = createNewAssessor("email", assessor.getValue(), 
                             assessor.getDescription());
                     entity.getAssessors().set(i, created);
                     log.debug("New assessor with id={} stored", created.getId());
                     existingAssessors.add(created);
+                } else {
+                    entity.getAssessors().set(i, existing);
                 }
             }
             String existingId = null;

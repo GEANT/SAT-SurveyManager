@@ -31,10 +31,16 @@ package org.geant.sat.api.dto;
 /**
  * This class contains information for one instantiated survey status.
  */
-public class SurveyStatusDetails extends TokenDetails {
+public class SurveyStatusDetails {
 
     /** The answer details. */
     private AnswerDetails answers;
+    
+    /** The entity details. */
+    private EntityDetails entity;
+    
+    /** The assessor details. */
+    private AssessorDetails assessor;
 
     /**
      * Get the answer details.
@@ -50,5 +56,37 @@ public class SurveyStatusDetails extends TokenDetails {
      */
     public void setAnswers(final AnswerDetails newAnswers) {
         answers = newAnswers;
+    }
+    
+    /**
+     * Get the entity details.
+     * @return The entity details.
+     */
+    public EntityDetails getEntity() {
+        return entity;
+    }
+    
+    /**
+     * Set the entity details.
+     * @param newEntity What to set.
+     */
+    public void setEntity(final EntityDetails newEntity) {
+        entity = newEntity;
+    }
+    
+    /**
+     * Get the assessor details.
+     * @return The assessor details.
+     */
+    public AssessorDetails getAssessor() {
+        return assessor;
+    }
+    
+    /**
+     * Set the assessor details.
+     * @param newAssessor What to set.
+     */
+    public void setAssessor(final AssessorDetails newAssessor) {
+        assessor = newAssessor;
     }
 }

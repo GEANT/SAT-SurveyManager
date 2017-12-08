@@ -91,6 +91,13 @@ public interface UserDatabaseConnector {
     public ListEntitiesResponse listEntities();
     
     /**
+     * Get the details for one entity in the database.
+     * @param entityId The entity identifier..
+     * @return The details for the given entity.
+     */
+    public EntityDetails getEntityDetails(final String entityId);
+    
+    /**
      * Create a new entity to the database.
      * @param name The name of the entity.
      * @param description The description of the entity.
@@ -128,6 +135,13 @@ public interface UserDatabaseConnector {
      * @return All the assessors in the database.
      */
     public ListAssessorsResponse listAssessors();
+    
+    /**
+     * Get the details for one assessor in the database.
+     * @param assessorId The assessor identifier..
+     * @return The details for the given assessor.
+     */
+    public AssessorDetails getAssessorDetails(final String assessorId);
 
     /**
      * Create a new assessor to the database.

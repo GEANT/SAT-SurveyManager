@@ -351,7 +351,35 @@ public class DataSourceUserDatabaseConnector implements UserDatabaseConnector {
         }
         return null;
     }
-    
+
+    /** {@inheritDoc} */
+    @Override
+    public EntityDetails getEntityDetails(final String entityId) {
+        log.debug("Fetching entity details for {}", entityId);
+        final String query = DataModelUtil.buildEntitiesViaIdQuery(entityId);
+        log.trace("Built query {}", query);
+        final ListEntitiesResponse response = jdbcTemplate.query(query, new EntityDetailsExtractor());
+        final List<EntityDetails> entities = response.getEntities();
+        if (entities != null && !entities.isEmpty()) {
+            return entities.get(0);
+        }
+        return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public AssessorDetails getAssessorDetails(final String assessorId) {
+        log.debug("Fetching assessor details for {}", assessorId);
+        final String query = DataModelUtil.buildAssessorsViaIdQuery(assessorId);
+        log.trace("Built query {}", query);
+        final ListAssessorsResponse response = jdbcTemplate.query(query, new AssessorDetailsExtractor());
+        final List<AssessorDetails> assessors = response.getAssessors();
+        if (assessors != null && !assessors.isEmpty()) {
+            return assessors.get(0);
+        }
+        return null;
+    }
+
     /** {@inheritDoc} */
     @Override
     public synchronized int addSurveyToken(final String token, final String entityId, final String assessorId, 

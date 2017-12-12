@@ -593,7 +593,7 @@ public class SatApiClient {
             method.setEntity(new UrlEncodedFormEntity(parameters));
             final HttpResponse response = httpClient.execute(method);
             final int statusCode = response.getStatusLine().getStatusCode();
-            log.debug("Response code {} from ", statusCode, url);
+            log.debug("Response code {} from {}", statusCode, url);
             if (statusCode == 200) {
                 final HttpEntity entity = response.getEntity();
                 final String contents = EntityUtils.toString(entity);

@@ -27,14 +27,20 @@
  */
 package org.geant.sat.api.security;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import net.shibboleth.utilities.java.support.logic.Constraint;
 
 /**
  * Authentication provider validating the incoming username/password token.
@@ -44,15 +50,36 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
 
     /** Class logger. */
     private final Logger log = LoggerFactory.getLogger(RestAuthenticationProvider.class);
+    
+    /** The user database. */
+    private Map<String, String> userDatabase = new HashMap<String, String>();
+    
+    /**
+     * Set the user database.
+     * @param users What to set.
+     */
+    public void setUserDatabase(final Map<String, String> users) {
+        userDatabase = Constraint.isNotNull(users, "The user database cannot be null");
+    }
 
     /** {@inheritDoc} */
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         log.debug("Starting authentication of: {}", authentication.toString());
-        // TODO: the actual authentication of the username / password
-        final RestAuthenticationToken token = new RestAuthenticationToken(authentication.getName());
-        SecurityContextHolder.getContext().setAuthentication(token);
-        return SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof UsernamePasswordAuthenticationToken) {
+            final UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authentication;
+            final String username = (String) token.getPrincipal();
+            final String password = (String) token.getCredentials();
+            if (userDatabase.containsKey(username) && userDatabase.get(username).equals(password)) {
+                final RestAuthenticationToken restToken = new RestAuthenticationToken(authentication.getName());
+                SecurityContextHolder.getContext().setAuthentication(restToken);
+                return SecurityContextHolder.getContext().getAuthentication();                
+            }
+            throw new BadCredentialsException("The user " + username + " cannot be authenticated: invalid username/password");
+        } else {
+            log.warn("Unsupported type of authentication token : {}", authentication.getClass());
+            return null;
+        }
     }
 
     /** {@inheritDoc} */
